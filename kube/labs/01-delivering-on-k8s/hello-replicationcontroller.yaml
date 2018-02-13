@@ -1,0 +1,45 @@
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: hello-rc-v1
+spec:
+  replicas: 2
+  selector:
+    app: hello
+    version: v1
+  template:
+    metadata:
+      labels:
+        app: hello
+        version: v1
+    spec:
+      containers:
+      - name: helloworld
+        image: istio/examples-helloworld-v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: hello-rc-v2
+spec:
+  replicas: 2
+  selector:
+    app: hello
+    version: v2
+  template:
+    metadata:
+      labels:
+        app: hello
+        version: v2
+    spec:
+      containers:
+      - name: helloworld
+        image: istio/examples-helloworld-v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+---
