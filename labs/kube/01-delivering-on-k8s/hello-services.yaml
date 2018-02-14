@@ -10,6 +10,7 @@ spec:
   type: NodePort
   ports:
   - port: 5002
+    targetPort: 5000
     name: http
   selector:
     app: hello
