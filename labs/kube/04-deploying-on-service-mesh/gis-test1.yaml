@@ -78,3 +78,19 @@ spec:
   selector:
     app: test1-api
 ---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test1-sidecar-ing
+  annotations:
+    kubernetes.io/ingress.class: "istio"
+  namespace: test1-ns
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /endpoint/payment-init/make-payment
+        backend:
+          serviceName: hello2-svc
+          servicePort: 6000
+---
