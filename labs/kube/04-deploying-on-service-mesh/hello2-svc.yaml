@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello2-svc
+  labels:
+    app: hello2
+  namespace: hello2-ns
+spec:
+  type: ClusterIP
+  #type: NodePort
+  ports:
+  - name: http
+    port: 6000
+    targetPort: 5000
+  selector:
+    app: hello2
+---
