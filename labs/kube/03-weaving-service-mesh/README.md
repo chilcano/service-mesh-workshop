@@ -44,11 +44,22 @@ $ oc apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 Checking installation:
 ```bash
+## check all resources:
 $ oc get all -n bookinfo
+
+## check if all pods are running:
+$ watch oc get pods -n bookinfo
 ```
-Entry point:
+
+Calling BookInfo App:
 ```bash
-http://istio-ingress-istio-system.<public-ip>.nip.io/productpage
+## through Istio Ingress Route:
+$ export MINISHIFT_IP=$(minishift ip)
+$ curl -s http://istio-ingress-istio-system.$MINISHIFT_IP.nip.io/productpage
+
+## through Istio Ingress Svc:
+$ export ISTIO_ING_URL=$(oc get po -l istio=ingress -o 'jsonpath={.items[0].status.hostIP}' -n istio-system):$(oc get svc istio-ingress -o 'jsonpath={.spec.ports[0].nodePort}' -n istio-system)
+$ minishift ssh -- curl -s http://$ISTIO_ING_URL/productpage
 ```
 
 ## 3. Useful commands

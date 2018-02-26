@@ -1,3 +1,15 @@
+### install:
+# $ oc apply -f service-mesh-workshop/labs/kube/01-delivering-on-k8s/hello-app.yaml
+# $ kubectl apply -f service-mesh-workshop/labs/kube/01-delivering-on-k8s/hello-app.yaml
+### check:
+# $ kubectl get all -n hello-ns
+### call to API:
+# **** 1) Through NodePort SVC (SSH isn't needed if you are using Minikube):
+# $ export NODE_PORT_HELLO=$(kubectl get svc hello-svc-np -n hello-ns -o jsonpath='{.spec.ports[0].nodePort}')
+# $ curl -s http://$(minikube ip):${NODE_PORT_HELLO}/hello
+# **** 2) Through ClusterIP SVC (SSH allways is needed):
+# $ export SVC_CIP_GW_URI_HELLO=$(kubectl get svc/hello-svc-np -n hello-ns -o jsonpath='{.spec.clusterIP}'):$(kubectl get svc/hello-svc-np -n hello-ns -o jsonpath='{.spec.ports[0].port}')
+# $ minikube ssh -- curl http://${SVC_CIP_GW_URI_HELLO}/hello
 ---
 apiVersion: v1
 kind: Namespace

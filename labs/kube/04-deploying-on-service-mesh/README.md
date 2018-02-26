@@ -105,12 +105,23 @@ $ oc apply -f hello2-deploy-istio.yaml
 ## add ssc
 $ oc adm policy add-scc-to-user privileged -z hello2-sa -n hello2-ns
 
+## delete and apply again the svc (ClusterIP will change) the previous svc
+$ oc delete -f hello2-svc.yaml
+$ oc apply -f hello2-svc.yaml
+
 ## deploy ingress
 $ oc apply -f hello2-ing.yaml
 ```
-Calling the service through ingress:
+
+Calling Hello2 App:
 ```bash
-$ curl -s eval $(minishift ip):80/hello
+## through Istio Ingress Route:
+$ export MINISHIFT_IP=$(minishift ip)
+$ curl -s http://istio-ingress-istio-system.$MINISHIFT_IP.nip.io/hello
+
+## through Istio Ingress Svc:
+$ export ISTIO_ING_URL=$(oc get po -l istio=ingress -o 'jsonpath={.items[0].status.hostIP}' -n istio-system):$(oc get svc istio-ingress -o 'jsonpath={.spec.ports[0].nodePort}' -n istio-system)
+$ minishift ssh -- curl -s http://$ISTIO_ING_URL/hello
 ```
 
 ### 1.5. Explore Hello2 by using `oc` commands and through Weave Scope
