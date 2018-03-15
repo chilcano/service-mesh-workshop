@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: hello-ns
+  name: hello
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: hello-sa
-  namespace: hello-ns
+  namespace: hello
 ---

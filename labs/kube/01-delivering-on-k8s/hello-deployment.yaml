@@ -3,7 +3,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: hello-v1
-  namespace: hello-ns
+  namespace: hello
 spec:
   replicas: 1
   template:
@@ -24,7 +24,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: hello-v2
-  namespace: hello-ns
+  namespace: hello
 spec:
   replicas: 1
   template:

@@ -1,32 +1,20 @@
-### install:
-# $ oc apply -f service-mesh-workshop/labs/kube/01-delivering-on-k8s/hello-app.yaml
-# $ kubectl apply -f service-mesh-workshop/labs/kube/01-delivering-on-k8s/hello-app.yaml
-### check:
-# $ kubectl get all -n hello-ns
-### call to API:
-# **** 1) Through NodePort SVC (SSH isn't needed if you are using Minikube):
-# $ export NODE_PORT_HELLO=$(kubectl get svc hello-svc-np -n hello-ns -o jsonpath='{.spec.ports[0].nodePort}')
-# $ curl -s http://$(minikube ip):${NODE_PORT_HELLO}/hello
-# **** 2) Through ClusterIP SVC (SSH allways is needed):
-# $ export SVC_CIP_GW_URI_HELLO=$(kubectl get svc/hello-svc-np -n hello-ns -o jsonpath='{.spec.clusterIP}'):$(kubectl get svc/hello-svc-np -n hello-ns -o jsonpath='{.spec.ports[0].port}')
-# $ minikube ssh -- curl http://${SVC_CIP_GW_URI_HELLO}/hello
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: hello-ns
+  name: hello
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: hello-sa
-  namespace: hello-ns
+  namespace: hello
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: hello-v1
-  namespace: hello-ns
+  namespace: hello
 spec:
   replicas: 1
   template:
@@ -47,7 +35,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: hello-v2
-  namespace: hello-ns
+  namespace: hello
 spec:
   replicas: 1
   template:
@@ -67,15 +55,47 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: hello-svc-cip
+  labels:
+    app: hello
+  namespace: hello
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 5010
+    targetPort: 5000
+  selector:
+    app: hello
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-svc-lb
+  labels:
+    app: hello
+  namespace: hello
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 5020
+    targetPort: 5000
+  selector:
+    app: hello
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: hello-svc-np
   labels:
     app: hello
-  namespace: hello-ns
+  namespace: hello
 spec:
   type: NodePort
   ports:
   - name: http
-    port: 5002
+    port: 5030
     targetPort: 5000
   selector:
     app: hello

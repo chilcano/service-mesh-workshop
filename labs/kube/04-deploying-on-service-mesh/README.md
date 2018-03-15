@@ -1,4 +1,4 @@
-# Deploying Applications on Service Mesh
+# Re-routing the API Traffic through Istio Ingress Controller
 
 ## References:
 * Kubernetes By Example: http://kubernetesbyexample.com
@@ -10,9 +10,10 @@
 - VirtualBox 5.1.30
 - macOS High Sierra, version 10.13.2 (17C88)
 
-## 1. Hello2 App on Service Mesh
+## 1) Hello2 App on Service Mesh
 
 ### 1.1. Deploy Hello2
+
 ```bash
 $ git clone https://github.com/chilcano/service-mesh-workshop
 $ cd service-mesh-workshop/labs/kube/04-deploying-on-service-mesh/
@@ -129,7 +130,7 @@ $ minishift ssh -- curl -s http://$ISTIO_ING_URL/hello
 $ oc get all -n hello2-ns
 ```
 
-## 2.  GIS PoC on Service Mesh
+## 2)  GIS PoC on Service Mesh
 
 ### 2.1. Inject sidecar and deploy
 ```bash
