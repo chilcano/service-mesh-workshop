@@ -2,7 +2,6 @@
 .vagrant
 *.retry
 *.deb
-*.txt
 *.bcn
 *.man
 inventory

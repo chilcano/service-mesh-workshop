@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ISTIO_VERSION=${1:-0.2.7}     # version: 0.5.1, 0.5.0
+ISTIO_VERSION=${1:-0.2.7}     # version: 0.5.0, 0.5.1, 0.6.0
 WORKING_DIR=${PWD}
 ISTIO_HOME=${WORKING_DIR}/istio-${ISTIO_VERSION}
 

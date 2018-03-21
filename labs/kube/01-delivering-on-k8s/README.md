@@ -59,7 +59,7 @@ $ export HELLO_SVC_LOADBALANCER=$(kubectl get svc hello-svc-lb -n hello -o jsonp
 $ curl -s http://$(minikube ip):${HELLO_SVC_LOADBALANCER}/hello
 ```
 
-* We are using `.spec.ports[0].nodePort` because `.spec.ports[0].port` has not been opened or NATed by Minikube (Vritualbox VM).
+* We are using `.spec.ports[0].nodePort` because `.spec.ports[0].port` has not been opened or NATed by Minikube (Virtualbox VM).
 
 ### 3.3) Calling NodePort SVC
 
