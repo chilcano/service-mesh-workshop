@@ -9,8 +9,9 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/s
 kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?v=${WEAVE_SCOPE_VERSION}&k8s-service-type=NodePort&k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
 cat << EOF
-...wait for a few seconds before to open:
-- Heapster:    $ minikube addons open heapster
-- Dashboard:   $ minikube dashboard
-- WeaveScope:  $ open http://$(minikube ip):$(kubectl get svc/weave-scope-app -n weave -o jsonpath='{.spec.ports[0].nodePort}')
+
+...wait for a few seconds before opening:
+  - Heapster:    $ minikube addons open heapster
+  - Dashboard:   $ minikube dashboard
+  - WeaveScope:  $ open http://$(minikube ip):$(kubectl get svc/weave-scope-app -n weave -o jsonpath='{.spec.ports[0].nodePort}')
 EOF

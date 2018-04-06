@@ -9,6 +9,9 @@ minikube start \
 --profile ${VM_NAME} \
 --kubernetes-version v1.8.0 \
 --extra-config apiserver.Admission.PluginNames="Initializers,NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,GenericAdmissionWebhook,ResourceQuota" \
+--bootstrapper localkube \
+--network-plugin cni \
+--feature-gates CustomResourceValidation=true \
 --cpus 4 \
 --memory ${MINIKUBE_MEMORY} \
 --iso-url ${MINIKUBE_ISO_URL}
