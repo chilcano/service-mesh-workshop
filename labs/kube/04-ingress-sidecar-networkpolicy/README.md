@@ -1,7 +1,4 @@
-# Traffic Management with Ingress and Sidecar
-
-The aim is redirecting the incomming traffic from external API client to target API by adding the Ingress Controller and deploying an Init Container and Sidecar Container in the same Pod where API is running.
-Once done, all incomming traffic pass through the Ingress Controller and hits the target API in a secure way. The Init Container and Sidecar Container provide extra security at the final end.
+# Secure, coarse and fine grained Traffic Management with Ingress, Sidecar and Network Policy
 
 __Kubernetes' Primitives used:__
 
@@ -11,6 +8,7 @@ __Kubernetes' Primitives used:__
 * Ingress Resources
 * Ingress Controller
 * Init Container and Sidecar Container
+* Network Policy 
 
 ## 1) Deploying HelloWorld v3 with Ingress
 

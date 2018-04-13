@@ -1,4 +1,4 @@
-# Coarse and fine grained Traffic Management with Ingress
+# Traffic Management with Ingress
 
 The aim is redirecting the incomming traffic from external API client to target API by adding the Ingress Controller. Once done, all incomming traffic pass through the Ingress Controller and it will be able to manage (filter, check attributes, reject, block, authenticate, etc.) that traffic.
 

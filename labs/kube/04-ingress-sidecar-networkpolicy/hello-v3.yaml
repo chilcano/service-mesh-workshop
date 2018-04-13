@@ -1,0 +1,63 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hello-v3
+  namespace: hello
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello
+        version: v3
+    spec:
+      serviceAccountName: hello-sa
+      containers:
+      - image: istio/examples-helloworld-v1
+        name: helloworld
+        env:
+          - name: SERVICE_VERSION
+            value: "v3"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-svc-np-e2e
+  labels:
+    app: hello
+    version: v3
+  namespace: hello
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 5040
+    targetPort: 5000
+  selector:
+    app: hello
+    version: v3
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hello-ing-e2e
+  labels:
+    app: hello
+    version: v3
+  annotations:
+    kubernetes.io/ingress.class: istio
+  namespace: hello
+spec:
+  rules:
+  - host: v3.helloworld.com
+    http:
+      paths:
+      - path: /hello
+        backend:
+          serviceName: hello-svc-np-e2e
+          servicePort: 5040
+---
