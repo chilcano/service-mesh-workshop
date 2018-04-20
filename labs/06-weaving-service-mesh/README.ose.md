@@ -12,7 +12,7 @@
 - VirtualBox 5.1.30
 - macOS High Sierra, version 10.13.2 (17C88)
 
-## 1. Installation Istio and Addons
+## 1. Installation of Istio and Addons
 
 ```bash
 $ wget https://github.com/istio/istio/releases/download/0.5.0/istio-0.5.0-linux.tar.gz  ## or istio-0.5.0-osx.tar.gz
@@ -21,6 +21,7 @@ $ oc login -u system:admin --server 192.168.99.100:8443 --insecure-skip-tls-veri
 $ cd istio-0.5.0
 $ ./install-istio.sh
 ```
+
 Checking installation:
 ```bash
 $ oc get all -n istio-system
@@ -34,7 +35,7 @@ http://grafana-istio-system.<public-ip>.nip.io/dashboard/db/istio-dashboard
 http://servicegraph-istio-system.<public-ip>.nip.io/dotviz
 ```
 
-## 2. Installation BookInfo sample app
+## 2. Installation of BookInfo sample app
 
 ```bash
 $ oc new-project bookinfo

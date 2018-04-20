@@ -54,9 +54,11 @@ We are going to use HelloWorld App, the same previously used in `01-delivering-o
 Below I'm re-deploying all HelloWorld App including the Ingress Resource for the NodePort Service.
 
 ```sh
-$ cd service-mesh-workshop/labs/kube/02-ingress/
+$ git clone https://github.com/chilcano/service-mesh-workshop
+$ cd $(PWD)/service-mesh-workshop/labs
+
 $ kubectl delete ns hello
-$ kubectl apply -f hello-app-with-ingress.yaml
+$ kubectl apply -f 02-ingress/hello-app-with-ingress.yaml
 ```
 
 Check if HelloWorld App is running:

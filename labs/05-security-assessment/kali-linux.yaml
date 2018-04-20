@@ -1,0 +1,19 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kali-linux
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: kali-linux
+    spec:
+      containers:
+      - image: kalilinux/kali-linux-docker
+        imagePullPolicy: Always
+        name: kali-linux
+        stdin: true
+        tty: true
+---

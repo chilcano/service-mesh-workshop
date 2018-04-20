@@ -1,0 +1,19 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: noroot-sec-tools
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: noroot-sec-tools
+    spec:
+      containers:
+      - image: raesene/alpine-noroot-containertools
+        imagePullPolicy: Always
+        name: noroot-sec-tools
+        stdin: true
+        tty: true
+---

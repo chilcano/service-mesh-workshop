@@ -4,9 +4,10 @@
 
 ```sh
 $ git clone https://github.com/chilcano/service-mesh-workshop
+$ cd $(PWD)/service-mesh-workshop/labs
 
 ## start
-$ . $(PWD)/service-mesh-workshop/labs/kube/00-k8s/k8s-minikube-start.sh kube0
+$ . 00-k8s/k8s-minikube-start.sh kube0
 
 ## stop
 $ minikube stop
@@ -18,5 +19,5 @@ $ minikube delete
 ## 2) Install extras (Dashboard, Heapster, Weave Scope)
 
 ```sh
-$ . $(PWD)/service-mesh-workshop/labs/kube/00-k8s/k8s-extras-install.sh kube0 latest
+$ . 00-k8s/k8s-extras-install.sh kube0 latest
 ```

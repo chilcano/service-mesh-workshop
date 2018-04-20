@@ -1,7 +1,7 @@
 # Traffic Management with Ingress and Sidecar
 
 The aim is redirecting the incomming traffic from external API client to target API by adding the Ingress Controller and deploying an Init Container and Sidecar Container in the same Pod where API is running.
-Once done, all incomming traffic pass through the Ingress Controller and hits the target API in a secure way. The Init Container and Sidecar Container provide extra security at the final end.
+Once done, all incomming traffic pass through the Ingress Controller and will hit the target API in a secure way. The Init Container and Sidecar Container provide extra security at the final end.
 
 __Kubernetes' Primitives used:__
 
@@ -17,16 +17,12 @@ __Kubernetes' Primitives used:__
 Clonning this workshop:
 ```sh
 $ git clone https://github.com/chilcano/service-mesh-workshop
-$ cd $(PWD)/service-mesh-workshop/labs/kube
+$ cd $(PWD)/service-mesh-workshop/labs
 ```
 
-Previously you have to install `02-ingress/hello-app-with-ingress.yaml`. Once done, install `hello-v3.yaml`.
+Previously you have to install `02-ingress/hello-app-with-ingress.yaml` (v1 and v2). Once done, install `hello-v3.yaml`.
 ```sh
-$ kubectl apply -f 02-ingress/hello-v3.yaml
-```
-
-Once done you can install the `hello-v3.yaml`
-```sh
+$ kubectl apply -f 02-ingress/hello-app-with-ingress.yaml
 $ kubectl apply -f 03-ingress-sidecar/hello-v3.yaml
 ```
 
@@ -47,7 +43,7 @@ ing/hello-ing       *                             80        18m
 ing/hello-ing-e2e   v3.helloworld.com             80        9m
 ```
 
-The Ingress `ing/hello-ing-e2e` and the NodePort Service `svc/hello-svc-np-e2e` will route all traffic to HelloWorld v3 if that traffic is for `v3.helloworld.com`.
+The `hello-v3.yaml` includes the Ingress `ing/hello-ing-e2e` and the NodePort Service `svc/hello-svc-np-e2e`, both will route all traffic to HelloWorld v3 if that traffic is for `v3.helloworld.com`.
 
 ### 1.1) Calling HelloWorld v3 through Istio Ingress Controller, previous Ingress Resource and NodePort Service.
 
@@ -59,14 +55,10 @@ NAME            TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)             
 istio-ingress   LoadBalancer   10.110.84.84   <pending>     80:32148/TCP,443:31183/TCP   16m       istio=ingress
 
 $ export ISTIO_INGRESS_PORT=$(kubectl get svc istio-ingress -n istio-system -o jsonpath='{.spec.ports[0].nodePort}')
-
 $ curl -s http://$(minikube ip):${ISTIO_INGRESS_PORT}/hello
+
 Hello version: v1, instance: hello-v1-69c9685b5-lqznm
-
-$ curl -s http://$(minikube ip):${ISTIO_INGRESS_PORT}/hello
 Hello version: v2, instance: hello-v2-54f5878c79-6gqvw
-
-$ curl -s http://$(minikube ip):${ISTIO_INGRESS_PORT}/hello
 Hello version: v3, instance: hello-v3-d9b99d69d-tqtsr
 ```
 
@@ -78,9 +70,9 @@ Since we want to call the HelloWorld v3 (`v3.helloworld.com`), the Ingress `ing/
 $ export ISTIO_INGRESS_PORT=$(kubectl get svc istio-ingress -n istio-system -o jsonpath='{.spec.ports[0].nodePort}')
 
 $ curl -s -H "Host: v3.helloworld.com" http://$(minikube ip):${ISTIO_INGRESS_PORT}/hello
+
 Hello version: v3, instance: hello-v3-d9b99d69d-tqtsr
-...
-$ curl -s -H "Host: v3.helloworld.com" http://$(minikube ip):${ISTIO_INGRESS_PORT}/hello
+Hello version: v3, instance: hello-v3-d9b99d69d-tqtsr
 Hello version: v3, instance: hello-v3-d9b99d69d-tqtsr
 ```
 
@@ -165,7 +157,6 @@ $ kubectl logs -l istio=ingress -n istio-system
 
 ```sh
 $ export ISTIO_INGRESS_PORT=$(kubectl get svc istio-ingress -n istio-system -o jsonpath='{.spec.ports[0].nodePort}')
-
 $ curl -s -H "Host: v3.helloworld.com" http://$(minikube ip):${ISTIO_INGRESS_PORT}/hello
 ```
 
@@ -215,10 +206,6 @@ serviceCluster: hello
 2018-04-04T14:08:02.514139Z	info	Availability zone not set, proxy will default to not using zone aware routing.
 [2018-04-04T14:11:57.485Z] "GET /hello HTTP/1.1" 200 - 0 55 300 299 "172.17.0.1" "curl/7.54.0" "7ead28ef-8b71-42ea-8d5c-4c16a93c2f08" "192.168.99.100:31338" "127.0.0.1:5000"
 ```
-
-### 2.4) Updating
-
-
 
 ## 3) Conclusions about using Istio Ingress, Pilot and Sidecar
 
