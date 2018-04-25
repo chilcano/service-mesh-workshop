@@ -1,3 +1,64 @@
+[container]:/opt/kubernetes-anywhere> make config
+
+CONFIG_="." kconfig-conf Kconfig
+*
+* Kubernetes Minimal Turnup Configuration
+*
+*
+* Phase 1: Cluster Resource Provisioning
+*
+number of nodes (phase1.num_nodes) [4] (NEW) 3
+kubernetes cluster name (phase1.cluster_name) [kubernetes] (NEW) k8s
+SSH user to login to OS for provisioning (phase1.ssh_user) [] (NEW) chilcano
+*
+* cloud provider: gce, azure or vsphere
+*
+cloud provider: gce, azure or vsphere (phase1.cloud_provider) [vsphere] (NEW) vsphere
+  *
+  * vSphere configuration
+  *
+  vCenter URL Ex: 10.192.10.30 or myvcenter.io (without https://) (phase1.vSphere.url) [] (NEW) 192.168.100.10
+  vCenter port (phase1.vSphere.port) [443] (NEW) 443
+  vCenter username (phase1.vSphere.username) [] (NEW) rogerca@RISELABTLV.LOCAL
+  vCenter password (phase1.vSphere.password) [] (NEW) xxxxxx
+  Does host use self-signed cert (phase1.vSphere.insecure) [Y/n/?] (NEW)
+  Datacenter (phase1.vSphere.datacenter) [datacenter] (NEW) Rise
+  Datastore (phase1.vSphere.datastore) [datastore] (NEW) vsanDatastore
+  Deploy Kubernetes Cluster on 'host' or 'cluster' (phase1.vSphere.placement) [cluster] (NEW)
+    vsphere cluster name. Please make sure that all the hosts in the cluster are time-synchronized otherwise some of the nodes can remain in pending state for ever due to expired certificate (phase1.vSphere.cluster) [] (NEW)
+  Do you want to use the existing resource pool on the host or cluster? [yes, no] (phase1.vSphere.useresourcepool) [no] (NEW)
+  VM Folder name or Path (e.g kubernetes, VMFolder1/dev-cluster, VMFolder1/Test Group1/test-cluster). Folder path will be created if not present (phase1.vSphere.vmfolderpath) [kubernetes] (NEW) OB
+  Number of vCPUs for each VM (phase1.vSphere.vcpu) [1] (NEW)
+  Memory for VM (phase1.vSphere.memory) [2048] (NEW)
+  Network for VM (phase1.vSphere.network) [VM Network] (NEW)
+  Name of the template VM imported from OVA. If Template file is not available at the destination location specify vm path (phase1.vSphere.template) [KubernetesAnywhereTemplatePhotonOS.ova] (NEW)
+  Flannel Network (phase1.vSphere.flannel_net) [172.1.0.0/16] (NEW)
+*
+* Phase 2: Node Bootstrapping
+*
+kubernetes version (phase2.kubernetes_version) [v1.6.5] (NEW)
+bootstrap provider (phase2.provider) [ignition] (NEW)
+  installer container (phase2.installer_container) [docker.io/cnastorage/k8s-ignition:v2] (NEW)
+  docker registry (phase2.docker_registry) [gcr.io/google-containers] (NEW)
+*
+* Phase 3: Deploying Addons
+*
+Run the addon manager? (phase3.run_addons) [Y/n/?] (NEW)
+  Run kube-proxy? (phase3.kube_proxy) [Y/n/?] (NEW)
+  Run the dashboard? (phase3.dashboard) [Y/n/?] (NEW)
+  Run heapster? (phase3.heapster) [Y/n/?] (NEW)
+  Run kube-dns? (phase3.kube_dns) [Y/n/?] (NEW)
+  Run weave-net? (phase3.weave_net) [N/y/?] (NEW)
+#
+# configuration written to .config
+[container]:/opt/kubernetes-anywhere>
+[container]:/opt/kubernetes-anywhere>
+
+
+
+
+
+
 [container]:/opt/kubernetes-anywhere>
 [container]:/opt/kubernetes-anywhere>
 [container]:/opt/kubernetes-anywhere> make deploy
