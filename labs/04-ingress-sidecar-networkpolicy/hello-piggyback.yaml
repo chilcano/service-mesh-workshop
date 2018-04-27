@@ -1,0 +1,24 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hello-piggyback
+  namespace: hello
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        piggyback: ok
+    spec:
+      serviceAccountName: hello-sa
+      containers:
+      - image: istio/examples-helloworld-v1
+        name: helloworld
+        env:
+          - name: SERVICE_VERSION
+            value: "PIGGYBACK"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+---

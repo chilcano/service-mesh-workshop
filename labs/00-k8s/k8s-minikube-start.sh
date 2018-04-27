@@ -9,6 +9,7 @@ minikube start \
 --profile ${VM_NAME} \
 --kubernetes-version v1.8.0 \
 --extra-config apiserver.Admission.PluginNames="Initializers,NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,GenericAdmissionWebhook,ResourceQuota" \
+--extra-config apiserver.Authorization.Mode=RBAC \
 --bootstrapper localkube \
 --network-plugin cni \
 --feature-gates CustomResourceValidation=true \
@@ -21,6 +22,11 @@ echo "----------- checking status -----------"
 # login & post checking:
 minikube profile ${VM_NAME}
 kubectl config use-context ${VM_NAME}
+
+# Fixes CrashLoopBackOff for kube-dns pod and RBAC enabled
+# - https://github.com/kubernetes/minikube/issues/2302
+# - https://github.com/kubernetes/kubernetes/issues/50799
+kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
 
 # status
 minikube status

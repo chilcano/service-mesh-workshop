@@ -36,6 +36,8 @@ $ ./install/updateVersion.sh -m true -a "docker.io/istio,0.6.0"
 $ kubectl apply -f install/kubernetes/components/istio-ns.yaml
 ## istio-config-updated.yaml and istio-ingress-updated.yaml have been modified removing tracing, mixer, etc.
 $ kubectl apply -f install/kubernetes/components/istio-config-updated.yaml
+## if kubernetes is running with RBAC, you will need to create istio roles
+$ kubectl apply -f install/kubernetes/components/istio-rbac-beta.yaml
 $ kubectl apply -f install/kubernetes/components/istio-pilot.yaml
 $ kubectl apply -f install/kubernetes/components/istio-ingress-updated.yaml
 ```
@@ -58,7 +60,7 @@ $ git clone https://github.com/chilcano/service-mesh-workshop
 $ cd $(PWD)/service-mesh-workshop/labs
 
 $ kubectl delete ns hello
-$ kubectl apply -f 02-ingress/hello-app-with-ingress.yaml
+$ kubectl apply -f 02-ingress/hello-with-ingress.yaml
 ```
 
 Check if HelloWorld App is running:

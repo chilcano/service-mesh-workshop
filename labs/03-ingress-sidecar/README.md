@@ -36,14 +36,14 @@ po/hello-v3-d9b99d69d-tqtsr    1/1       Running   0          9m
 
 NAME                   TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
 svc/hello-svc-np       NodePort   10.104.167.181   <none>        5030:31683/TCP   18m
-svc/hello-svc-np-e2e   NodePort   10.101.169.227   <none>        5040:30756/TCP   9m
+svc/hello-v3-svc-np   NodePort   10.101.169.227   <none>        5040:30756/TCP   9m
 
 NAME                HOSTS               ADDRESS   PORTS     AGE
 ing/hello-ing       *                             80        18m
-ing/hello-ing-e2e   v3.helloworld.com             80        9m
+ing/hello-v3-ing    v3.helloworld.com             80        9m
 ```
 
-The `hello-v3.yaml` includes the Ingress `ing/hello-ing-e2e` and the NodePort Service `svc/hello-svc-np-e2e`, both will route all traffic to HelloWorld v3 if that traffic is for `v3.helloworld.com`.
+The `hello-v3.yaml` includes the Ingress `ing/hello-v3-ing` and the NodePort Service `svc/hello-v3-svc-np`, both will route all traffic to HelloWorld v3 if that traffic is for `v3.helloworld.com`.
 
 ### 1.1) Calling HelloWorld v3 through Istio Ingress Controller, previous Ingress Resource and NodePort Service.
 
@@ -64,11 +64,10 @@ Hello version: v3, instance: hello-v3-d9b99d69d-tqtsr
 
 ### 1.2) Calling HelloWorld v3 through Istio Ingress Controller, new Ingress Resource and new NodePort Service.
 
-Since we want to call the HelloWorld v3 (`v3.helloworld.com`), the Ingress `ing/hello-ing-e2e` and the NodePort Service `svc/hello-svc-np-e2e` will be used to route all incomming traffic.
+Since we want to call the HelloWorld v3 (`v3.helloworld.com`), the Ingress `ing/hello-v3-ing` and the NodePort Service `svc/hello-v3-svc-np` will be used to route all incomming traffic.
 
 ```sh
 $ export ISTIO_INGRESS_PORT=$(kubectl get svc istio-ingress -n istio-system -o jsonpath='{.spec.ports[0].nodePort}')
-
 $ curl -s -H "Host: v3.helloworld.com" http://$(minikube ip):${ISTIO_INGRESS_PORT}/hello
 
 Hello version: v3, instance: hello-v3-d9b99d69d-tqtsr
@@ -143,7 +142,7 @@ $ kubectl get pod,svc,ing -n hello
 $ kubectl logs -l version=v3 -n hello -c istio-proxy
 $ kubectl logs -l istio=ingress -n istio-system
 ...
-[2018-04-04 14:02:29.982][14][info][upstream] external/envoy/source/common/upstream/cluster_manager_impl.cc:356] add/update cluster out.hello-svc-np-e2e.hello.svc.cluster.local|http
+[2018-04-04 14:02:29.982][14][info][upstream] external/envoy/source/common/upstream/cluster_manager_impl.cc:356] add/update cluster out.hello-v3-svc-np.hello.svc.cluster.local|http
 [2018-04-04T14:04:20.780Z] "GET /hello HTTP/1.1" 200 - 0 55 207 205 "172.17.0.1" "curl/7.54.0" "575fecd2-b124-4b16-b7e7-32964e9986ef" "v3.helloworld.com" "172.17.0.11:5000"
 [2018-04-04T14:04:22.818Z] "GET /hello HTTP/1.1" 200 - 0 55 170 170 "172.17.0.1" "curl/7.54.0" "c836ff9a-845b-4f90-bd05-c479e5fcfe92" "v3.helloworld.com" "172.17.0.11:5000"
 [2018-04-04T14:04:24.323Z] "GET /hello HTTP/1.1" 200 - 0 55 172 171 "172.17.0.1" "curl/7.54.0" "7d78887f-de70-4a79-a450-62948d87a4b7" "v3.helloworld.com" "172.17.0.11:5000"
@@ -233,7 +232,7 @@ $ kubectl run malicious-curl --image=radial/busyboxplus:curl -ti --replicas=1 -n
 
 ## calling an API from other namespace through its services
 [ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ curl -sv hello-svc-np.hello.svc.cluster.local:5030/hello
-[ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ curl -sv hello-svc-np-e2e.hello.svc.cluster.local:5040/hello
+[ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ curl -sv hello-v3-svc-np.hello.svc.cluster.local:5040/hello
 
 ## DoS attack
 [ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ export HELLO_URL=hello-svc-np.hello.svc.cluster.local:5030
@@ -241,7 +240,7 @@ $ kubectl run malicious-curl --image=radial/busyboxplus:curl -ti --replicas=1 -n
 
 ## gathering information about the services living in kubernetes
 [ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ nslookup hello-svc-np.hello.svc.cluster.local
-[ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ nslookup hello-svc-np-e2e.hello.svc.cluster.local
+[ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ nslookup hello-v3-svc-np.hello.svc.cluster.local
 
 ## gathering information about the pods living in kubernetes
 [ root@malicious-curl-6b6f76f5f9-bsl9x:/ ]$ nslookup 172.17.0.7                             # po/hello-v1-69c9685b5-dgnhq
@@ -423,7 +422,7 @@ hello-v1-69c9685b5-znjw9    1/1       Running   0          28m
 hello-v2-54f5878c79-qd2zx   1/1       Running   0          28m
 hello-v3-7cb4968687-7x6xz   2/2       Running   0          22m
 
-$ kubectl exec hello-v1-69c9685b5-znjw9 -n hello -- curl -s hello-svc-np-e2e:5040/hello
+$ kubectl exec hello-v1-69c9685b5-znjw9 -n hello -- curl -s hello-v3-svc-np:5040/hello
 command terminated with exit code 6
 ```
 
@@ -434,7 +433,7 @@ NAME                             READY     STATUS    RESTARTS   AGE
 istio-ingress-564c984f48-nnp4s   1/1       Running   0          29m
 istio-pilot-66c6d5fb46-dwxz4     2/2       Running   0          30m
 
-$ kubectl exec istio-ingress-564c984f48-nnp4s -n istio-system -- curl -s hello-svc-np-e2e.hello:5040/hello
+$ kubectl exec istio-ingress-564c984f48-nnp4s -n istio-system -- curl -s hello-v3-svc-np.hello:5040/hello
 oci runtime error: exec failed: container_linux.go:265: starting container process caused "exec: \"curl\": executable file not found in $PATH"
 
 command terminated with exit code 126
@@ -450,7 +449,7 @@ We can install new pod with the same or new label `access: hello-v3` to call to 
 ```sh
 $ kubectl run malicious --rm -ti --labels="access=hello-v3" --image=radial/busyboxplus:curl
 / # curl -s http://hello-svc-np.hello:5030/hello
-/ # curl -s -H "Host: v3.helloworld.com" http://hello-svc-np-e2e.hello:5040/hello
+/ # curl -s -H "Host: v3.helloworld.com" http://hello-v3-svc-np.hello:5040/hello
 ```
 
 ## 4) More Demos: Istio Bookinfo App with L3/L4 Cilium Policy

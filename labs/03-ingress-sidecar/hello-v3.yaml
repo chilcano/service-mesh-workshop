@@ -26,7 +26,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: hello-svc-np-e2e
+  name: hello-v3-svc-np
   labels:
     app: hello
     version: v3
@@ -44,7 +44,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: hello-ing-e2e
+  name: hello-v3-ing
   labels:
     app: hello
     version: v3
@@ -58,6 +58,6 @@ spec:
       paths:
       - path: /hello
         backend:
-          serviceName: hello-svc-np-e2e
+          serviceName: hello-v3-svc-np
           servicePort: 5040
 ---

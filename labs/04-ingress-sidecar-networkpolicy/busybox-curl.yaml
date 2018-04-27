@@ -1,0 +1,22 @@
+---
+# kubectl apply -f busybox-curl.yaml
+# export POD_NAME=$(kubectl get pod -l run=radial-curl -o jsonpath='{.items[0].metadata.name}')
+# kubectl exec -it ${POD_NAME} -- /bin/sh
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: busybox-curl
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        piggyback: ok
+    spec:
+      containers:
+      - image: radial/busyboxplus:curl
+        imagePullPolicy: IfNotPresent
+        name: busybox-curl
+        stdin: true
+        tty: true
+---

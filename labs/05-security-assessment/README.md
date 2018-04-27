@@ -3,6 +3,11 @@
 __References:__
 * https://raesene.github.io/blog/2016/10/08/Kubernetes-From-Container-To-Cluster
 * https://raesene.github.io/blog/2017/07/23/network-tools-in-nonroot-docker-images
+* https://medium.com/@airman604/kali-linux-in-a-docker-container-5a06311624eb
+* https://github.com/raesene/alpine-noroot-containertools
+* https://grafeas.io
+* https://www.openpolicyagent.org
+* https://k8guard.github.io
 
 ## 1) Identifying Attack Vectors
 

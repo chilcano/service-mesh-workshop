@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: hello-v3
+  name: hello-v3-netpol-ingress
   namespace: hello
 spec:
   podSelector:
@@ -12,9 +12,30 @@ spec:
   ingress:
   - ports:
     - protocol: TCP
-      port: 5040
+      #port: 5040
+      port: 5000
     from:
     - podSelector:
         matchLabels:
           istio: ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hello-v3-netpol-piggyback
+  namespace: hello
+spec:
+  podSelector:
+    matchLabels:
+      app: hello
+      version: v3
+  ingress:
+  - ports:
+    - protocol: TCP
+      #port: 5040
+      port: 5000
+    from:
+    - podSelector:
+        matchLabels:
+          piggyback: ok
 ---
