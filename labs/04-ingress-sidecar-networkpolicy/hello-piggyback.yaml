@@ -18,7 +18,7 @@ spec:
         env:
           - name: SERVICE_VERSION
             value: "PIGGYBACK"
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: IfNotPresent       ### Always
         ports:
         - containerPort: 5000
 ---

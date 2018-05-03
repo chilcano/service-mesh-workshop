@@ -3,16 +3,19 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: noroot-sec-tools
+  labels:
+    app: pentesting
 spec:
   replicas: 1
   template:
     metadata:
       labels:
+        app: pentesting
         run: noroot-sec-tools
     spec:
       containers:
       - image: raesene/alpine-noroot-containertools
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent       ### Always
         name: noroot-sec-tools
         stdin: true
         tty: true

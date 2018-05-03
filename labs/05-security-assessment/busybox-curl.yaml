@@ -2,7 +2,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: kali-linux
+  name: busybox-curl
   labels:
     app: pentesting
 spec:
@@ -11,12 +11,12 @@ spec:
     metadata:
       labels:
         app: pentesting
-        run: kali-linux
+        run: busybox-curl
     spec:
       containers:
-      - image: kalilinux/kali-linux-docker
+      - image: radial/busyboxplus:curl
         imagePullPolicy: IfNotPresent       ### Always
-        name: kali-linux
+        name: busybox-curl
         stdin: true
         tty: true
 ---

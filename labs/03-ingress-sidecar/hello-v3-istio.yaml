@@ -17,7 +17,7 @@ spec:
         version: v3
     spec:
       containers:
-      - env:
+      - env:                                      # image: istio/examples-helloworld-v1
         - name: SERVICE_VERSION
           value: v3
         image: istio/examples-helloworld-v1
@@ -26,7 +26,7 @@ spec:
         ports:
         - containerPort: 5000
         resources: {}
-      - args:
+      - args:                                     # image: docker.io/istio/proxy:0.6.0
         - proxy
         - sidecar
         - --configPath
@@ -81,7 +81,7 @@ spec:
           name: istio-certs
           readOnly: true
       initContainers:
-      - args:
+      - args:                                       # image: docker.io/istio/proxy_init:0.6.0
         - -p
         - "15001"
         - -u
@@ -94,7 +94,7 @@ spec:
           capabilities:
             add:
             - NET_ADMIN
-      - args:
+      - args:                                       # image: alpine
         - -c
         - sysctl -w kernel.core_pattern=/etc/istio/proxy/core.%e.%p.%t && ulimit -c
           unlimited
