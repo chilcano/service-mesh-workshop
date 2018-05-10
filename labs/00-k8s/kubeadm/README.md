@@ -8,10 +8,10 @@ In order to create a Kubernetes Cluster, you have to create a set of VMs, for th
 This repository contains a `Vagrantfile` to create 3 VMs with Ubuntu to start quickly.
 
 Previously you need:
-- to create VirtualBox VMsHashicorp
-  - Vagrant
+- to create VirtualBox VMs
+  - Hashicorp Vagrant
   - VirtualBox
-- to create the Kubernetes cluster
+- to create the Kubernetes Cluster
   - Ansible
 
 ## 1. Create the VMs
@@ -86,7 +86,7 @@ $ vagrant ssh master1 -- kubectl get pod,svc -n weave
 
 ```
 $ scp vagrant@master1:/home/vagrant/.kube/config master1.config
-$ export KUBECONFIG=~/1github-repo/sciabarracom-mosaico3/servers/vbox/master1.config
+$ export KUBECONFIG=~/1github-repo/service-mesh-workshop/labs/00-k8s/kubeadm/infra/virtualbox/master1.config
 ```
 
 ## 7. Installing Weave Scope
