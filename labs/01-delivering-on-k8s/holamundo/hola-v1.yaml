@@ -1,0 +1,63 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hola-v1
+  namespace: hello
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hola
+        version: v1
+    spec:
+      serviceAccountName: hello-sa
+      containers:
+      - image: chilcano/holamundo:release1           #### push docker image from Docker Registry
+        name: holamundo
+        env:
+          - name: SERVICE_VERSION
+            value: "v1"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hola-v1-svc-np
+  labels:
+    app: hola
+    version: v1
+  namespace: hello
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 5050
+    targetPort: 5000
+  selector:
+    app: hola
+    version: v1
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hola-v1-ing
+  labels:
+    app: hola
+    version: v1
+  annotations:
+    kubernetes.io/ingress.class: istio
+  namespace: hello
+spec:
+  rules:
+  - host: v1.holamundo.com
+    http:
+      paths:
+      - path: /hola
+        backend:
+          serviceName: hola-v1-svc-np
+          servicePort: 5050
+---

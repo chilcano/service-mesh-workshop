@@ -1,0 +1,49 @@
+domain   = 'k8s'    ## used to identify private network for k8s cluster and the cluster domain name
+
+# use two digits id below, please
+nodescluster = [
+  { :role => 'master', :hostname => 'master1', :ip => '10.0.0.10', :id => '10' },
+  { :role => 'worker', :hostname => 'node1',   :ip => '10.0.0.11', :id => '11' },
+  { :role => 'worker', :hostname => 'node2',   :ip => '10.0.0.12', :id => '12' },
+]
+
+memory = 2048   ## MB
+cpus = 1        ## virtual cpus
+
+## propagate 'hosts' file and ssh key files
+$script = <<SCRIPT
+sudo mv hosts /etc/hosts
+chmod 0600 /home/vagrant/.ssh/id_rsa
+usermod -a -G vagrant ubuntu
+cp -Rvf /home/vagrant/.ssh /home/ubuntu
+chown -Rvf ubuntu /home/ubuntu
+apt-get -y update
+apt-get -y install python-minimal python-apt
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.ssh.insert_key = false
+  nodescluster.each do |node|
+    config.vm.define node[:hostname] do |nodeconfig|
+      nodeconfig.vm.box = "ubuntu/xenial64"
+      nodeconfig.vm.hostname = node[:hostname]
+      if node[:role] == 'master'
+        nodeconfig.vm.network "forwarded_port", guest: 6443, host: 6443         ## K8s api server run on 6443 port
+        nodeconfig.vm.network "forwarded_port", guest: 30002, host: 30002       ## Setting 30002 nodeport for weave scope
+      end
+      nodeconfig.vm.network :private_network, ip: node[:ip], virtualbox__intnet: domain   ## Adapter 2 Private Network for Kubernetes
+      nodeconfig.vm.provider :virtualbox do |vb|
+        vb.name = node[:hostname] + "." + domain
+        vb.memory = memory
+        vb.cpus = cpus
+        vb.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+        vb.customize ['modifyvm', :id, '--natdnsproxy1', 'on']
+        vb.customize ['modifyvm', :id, '--macaddress1', "5CA1AB1E00" + node[:id]]   ## Adapter 1 NAT - set a MAC Address
+        vb.customize ['modifyvm', :id, '--natnet1', "192.168/16"]                   ## Adapter 1 NAT - 192.168.0.15
+      end
+      nodeconfig.vm.provision "file", source: "hosts", destination: "hosts"         ## copy 'hosts' file to '/vagrant/hosts' in VM
+      nodeconfig.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/home/vagrant/.ssh/id_rsa"
+      nodeconfig.vm.provision "shell", inline: $script
+    end
+  end
+end
