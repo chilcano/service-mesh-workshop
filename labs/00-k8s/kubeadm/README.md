@@ -48,10 +48,10 @@ $ rm -rf vagrant-*
 
 ```
 $ rm -rf ~/.ssh/config
-$ vagrant ssh-config >>~/.ssh/config
+$ vagrant ssh-config >> ~/.ssh/config
 ```
 
-Update your `hosts` file accordingly to your `Vagrantfile`:
+Update your `/etc/hosts` file accordingly to your `service-mesh-workshop/labs/00-k8s/kubeadm/infra/virtualbox/Vagrantfile`:
 ```
 $ sudo nano /etc/hosts
 
@@ -60,15 +60,16 @@ $ sudo nano /etc/hosts
 
 ## 4. Ansible provision to create the Kubernetes Cluster
 
-Update your `inventory` file accordingly to your `Vagrantfile`, once done run the `k8scluster.yml` Ansible Playbook:
+Update your `service-mesh-workshop/labs/00-k8s/kubeadm/inventory` file accordingly to your `service-mesh-workshop/labs/00-k8s/kubeadm/infra/virtualbox/Vagrantfile`, once done run the `k8scluster.yml` Ansible Playbook:
 ```
+$ cd cd ../../ansible/
 $ ansible-playbook k8scluster.yml
 ```
 
 ## 5. Checking the Kubernetes Cluster
 
 ```
-$ cd infra/virtualbox
+$ cd ../infra/virtualbox
 $ vagrant status
 Current machine states:
 
@@ -77,16 +78,69 @@ node1                 running (virtualbox)
 node2                 running (virtualbox)
 
 $ vagrant ssh master1 -- kubectl get nodes
+NAME      STATUS    ROLES     AGE       VERSION
+master1   Ready     master    5m        v1.10.2
+node1     Ready     <none>    4m        v1.10.2
+node2     Ready     <none>    4m        v1.10.2
+
 $ vagrant ssh master1 -- kubectl get pod --all-namespaces
 $ vagrant ssh master1 -- kubectl get pod,svc -n kube-system
 $ vagrant ssh master1 -- kubectl get pod,svc -n weave
 ```
 
+Checking installed Kubernetes version:
+```
+$ vagrant ssh master1 -- dpkg -l kubeadm
+$ vagrant ssh master1 -- dpkg -l kubelet
+$ vagrant ssh master1 -- dpkg -l kubectl
+```
+Or:
+
+```
+$ vagrant ssh master1 -- apt list kubeadm
+$ vagrant ssh master1 -- apt list kubelet
+$ vagrant ssh master1 -- apt list kubectl
+```
+
+Checking available Kubernetes versions:
+```
+$ vagrant ssh master1 -- apt-cache policy kubeadm
+$ vagrant ssh master1 -- apt-cache policy kubelet
+$ vagrant ssh master1 -- apt-cache policy kubectl
+```
+
+The `kubeadm/ansible/roles/prepare/tasks/install.yml` installs all components of Kubernetes. In order to install a specific version of Kubernetes we have to define the version in `apt` command. E.g.:
+
+```yaml
+- name: install docker, kubernetes components (kubelet, kubeadm, kubectl) and ntp
+  apt: name={{ item }} state=present allow_unauthenticated=yes
+  with_items:
+    - docker.io
+    - kubelet=1.8.0-00
+    - kubeadm=1.8.0-00
+    - kubectl=1.8.0-00
+    - ntp
+```
+Make sure that the versions used are compatibles.
+
+
 ## 6. Getting access the Cluster from `kubectl`
 
 ```
-$ scp vagrant@master1:/home/vagrant/.kube/config master1.config
-$ export KUBECONFIG=~/1github-repo/service-mesh-workshop/labs/00-k8s/kubeadm/infra/virtualbox/master1.config
+$ scp vagrant@master1:/home/vagrant/.kube/config master1.kubeconfig
+$ export KUBECONFIG=$PWD/master1.kubeconfig
+```
+Now, update `master1.kubeconfig` changing `server: https://10.0.0.10:6443` for `server: https://master1:6443`.
+```
+$ sed -i'.bak' 's/server: https:\/\/10.0.0.10:6443/server: https:\/\/master1:6443/g' master1.kubeconfig
+```
+And ready. You can connect to remote Kubernetes Cluster:
+```
+$ kubectl get nodes
+NAME      STATUS    ROLES     AGE       VERSION
+master1   Ready     master    1h        v1.10.2
+node1     Ready     <none>    1h        v1.10.2
+node2     Ready     <none>    1h        v1.10.2
 ```
 
 ## 7. Installing Weave Scope

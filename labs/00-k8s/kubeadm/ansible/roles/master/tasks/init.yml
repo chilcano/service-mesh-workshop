@@ -1,6 +1,6 @@
 - lineinfile: dest=/etc/sysctl.conf line='net.bridge.bridge-nf-call-ip6tables = 1' state=present
 - lineinfile: dest=/etc/sysctl.conf line='net.bridge.bridge-nf-call-iptables = 1' state=present
-- name: initialize kube
+- name: initialize kubeadm
   shell: >
        kubeadm reset &&
        sysctl -p &&

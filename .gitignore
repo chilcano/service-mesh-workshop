@@ -4,3 +4,7 @@
 *.deb
 *.bcn
 *.man
+*.log
+*.kubeconfig
+*.config
+*.bak
