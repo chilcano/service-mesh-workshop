@@ -4,8 +4,8 @@
   become: True
   gather_facts: True
   tasks:
-  - name: uninstall docker
-    yum: name={{ item }} state=absent
+  - name: uninstall kubernetes components
+    apt: name={{ item }} state=absent allow_unauthenticated=yes
     with_items:
       - kubectl
       - kubeadm

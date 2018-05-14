@@ -1,4 +1,7 @@
-- shell: "apt-get -y update && apt-get install -y apt-transport-https"
+- name: update repositories cache and install "apt-transport-https" package
+  apt:
+    name: apt-transport-https
+    update_cache: yes
 - apt_repository:
     repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
     state: present
