@@ -1,0 +1,23 @@
+## NodePorts 30080 and 30443 should be opened in the EdgeProxy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-ingress-svc
+  namespace: istio-system
+  labels:
+    istio: ingress
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30080  ## forces to assign this port
+  - name: https
+    port: 443
+    targetPort: 443
+    nodePort: 30443  ## forces to assign this port
+  selector:
+    istio: ingress
+---

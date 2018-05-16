@@ -56,7 +56,7 @@ $ kubectl run malicious-curl --image=radial/busyboxplus:curl -ti --replicas=1 -n
 $ kubectl apply -f 05-security-assessment/kali-linux.yaml
 $ export KALI_POD_NAME=$(kubectl get pod -l run=kali-linux -o jsonpath='{.items[0].metadata.name}')
 $ kubectl exec -ti ${KALI_POD_NAME} -- /bin/sh
-# apt update
+# apt update -y
 # apt install -y nmap curl netcat
 ```
 

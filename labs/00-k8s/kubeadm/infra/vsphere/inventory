@@ -1,0 +1,12 @@
+[masters]
+ob1 ansible_ssh_host=172.16.70.10
+
+[nodes]
+#ob2
+#ob3
+
+[all:vars]
+#ansible_connection=ssh
+ansible_user=k8sadmin
+ansible_become_pass=k8sadmin
+ansible_python_interpreter=/usr/bin/python3

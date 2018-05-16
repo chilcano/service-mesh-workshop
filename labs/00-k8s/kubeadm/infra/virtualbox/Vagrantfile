@@ -28,8 +28,12 @@ Vagrant.configure("2") do |config|
       nodeconfig.vm.box = "ubuntu/xenial64"
       nodeconfig.vm.hostname = node[:hostname]
       if node[:role] == 'master'
-        nodeconfig.vm.network "forwarded_port", guest: 6443, host: 6443         ## K8s api server run on 6443 port
-        nodeconfig.vm.network "forwarded_port", guest: 30002, host: 30002       ## Setting 30002 nodeport for weave scope
+        nodeconfig.vm.network "forwarded_port", guest: 6443, host: 6443         ## open 6443 port for K8s API Server
+        nodeconfig.vm.network "forwarded_port", guest: 30002, host: 30002       ## open 30002 NodePort for Weave Scope
+        ## generally LoadBalancer Svc, should open the ports automatically
+        ## we have to deploy a NodePort Svc in order to open standard ports: http/30080 and https/30080
+        nodeconfig.vm.network "forwarded_port", guest: 30080, host: 30080       ## open 30080 NodePort for Istio Ingress on HTTP
+        nodeconfig.vm.network "forwarded_port", guest: 30080, host: 30443       ## open 30443 NodePort for Istio Ingress on HTTPS
       end
       nodeconfig.vm.network :private_network, ip: node[:ip], virtualbox__intnet: domain   ## Adapter 2 Private Network for Kubernetes
       nodeconfig.vm.provider :virtualbox do |vb|
