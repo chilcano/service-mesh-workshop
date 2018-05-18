@@ -1,0 +1,70 @@
+---
+- name: pre-configure all VM (masters and nodes)
+  hosts: all
+  become: True
+  gather_facts: True
+
+  tasks:
+    - name: update hostname in remote host
+      hostname:
+        name: '{{ inventory_hostname_short }}'
+
+    - name: update hostname to remote /etc/hosts file
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '^127\.0\.(0|1)\.1[ \t]+'
+        line: '127.0.0.1 localhost {{ inventory_hostname_short }}'
+        state: present
+
+    - name: add inventory to remote /etc/hosts file
+      lineinfile:
+        dest: /etc/hosts
+        #regexp: '.*{{ item }}$'
+        regexp: "^{{ hostvars[item]['ansible_ssh_host'] }}"
+        #line: "{{ hostvars[item].ansible_default_ipv4.address }} {{item}}"
+        line: "{{ hostvars[item]['ansible_ssh_host'] }}  {{item}}"
+        state: present
+      when: hostvars[item]['ansible_ssh_host'] is defined
+      #with_items: groups['all']
+      with_items: "{{ groups['all'] }}"
+
+    - name: remove swap in /etc/fstab file in remote host
+      lineinfile:
+        dest: /etc/fstab
+        #regexp: '^/[\S]+\s+none\s+swap '
+        regexp: '^[\S]+\s+none\s+swap '
+        state: absent
+
+    - name: disable swap in remote host
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: proxy | create dir to allocate proxy config files
+      file:
+        path: '{{ item }}'
+        state: directory
+      with_items:
+        - '/etc/systemd/system/docker.service.d/'
+        - '/etc/sysconfig/'
+
+    - name: proxy | create 'http-proxy.conf' file to config a proxy for docker
+      copy:
+        dest: "/etc/systemd/system/docker.service.d/http-proxy.conf"
+        content: |
+          [Service]
+          Environment="HTTP_PROXY={{ _proxy_http }}" "NO_PROXY={{ _proxy_no }}"
+
+    - name: proxy | create 'https-proxy.conf' file to config a proxy for docker
+      copy:
+        dest: "/etc/systemd/system/docker.service.d/https-proxy.conf"
+        content: |
+          [Service]
+          Environment="HTTPS_PROXY={{ _proxy_https }}" "NO_PROXY={{ _proxy_no }}"
+
+    - name: proxy | create '/etc/sysconfig/proxy' file to config proxy for the VM
+      copy:
+        dest: "/etc/sysconfig/proxy"
+        content: |
+          HTTP_PROXY={{ _proxy_http }}
+          HTTPS_PROXY={{ _proxy_https }}
+          NO_PROXY={{ _proxy_no }}

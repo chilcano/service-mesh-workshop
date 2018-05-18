@@ -1,0 +1,17 @@
+[masters]
+rog1  ansible_ssh_host=172.16.70.12  k8s_net_ip_priv=172.16.70.12
+
+[nodes]
+rog2  ansible_ssh_host=172.16.70.13  k8s_net_ip_priv=172.16.70.13
+rog3  ansible_ssh_host=172.16.70.14  k8s_net_ip_priv=172.16.70.14
+
+[all:vars]
+ansible_user=k8sadmin
+ansible_python_interpreter=/usr/bin/python3
+#_k8s_version=1.8.1
+#_k8s_version=1.10.0
+_k8s_version=1.10.2
+_k8s_version_deb_min="00"
+_proxy_http=http://10.0.11.1:3128
+_proxy_https=http://10.0.11.1:3128
+_proxy_no=localhost,127.0.0.1

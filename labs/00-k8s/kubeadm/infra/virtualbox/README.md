@@ -1,4 +1,4 @@
-# Creating a Kubernetes Cluster with 'kubeadm'
+# Creating a Kubernetes Cluster with 'kubeadm' and Vagrant
 
 These Ansible Playbooks can be used for creating a Kubernetes Cluster on any Virtualization Provider (Vagrant/VirtualBox, VMWare vSphere, KVM, etc.) by following the 'kubeadm' approach (https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm).
 
@@ -51,7 +51,7 @@ $ rm -rf ~/.ssh/config
 $ vagrant ssh-config >> ~/.ssh/config
 ```
 
-Update your `/etc/hosts` file accordingly to your `service-mesh-workshop/labs/00-k8s/kubeadm/infra/virtualbox/Vagrantfile`:
+Update your `/etc/hosts` file of your local computer accordingly to your `Vagrantfile`:
 ```
 $ sudo nano /etc/hosts
 
@@ -60,16 +60,14 @@ $ sudo nano /etc/hosts
 
 ## 4. Ansible provision to create the Kubernetes Cluster
 
-Update your `service-mesh-workshop/labs/00-k8s/kubeadm/inventory` file accordingly to your `service-mesh-workshop/labs/00-k8s/kubeadm/infra/virtualbox/Vagrantfile`, once done run the `k8scluster.yml` Ansible Playbook:
+Update your `inventory` file accordingly to your `Vagrantfile`, once done run the `k8scluster.yml` Ansible Playbook:
 ```
-$ cd cd ../../ansible/
 $ ansible-playbook k8scluster.yml
 ```
 
 ## 5. Checking the Kubernetes Cluster
 
 ```
-$ cd ../infra/virtualbox
 $ vagrant status
 Current machine states:
 
@@ -94,8 +92,8 @@ $ vagrant ssh master1 -- dpkg -l kubeadm
 $ vagrant ssh master1 -- dpkg -l kubelet
 $ vagrant ssh master1 -- dpkg -l kubectl
 ```
-Or:
 
+Or:
 ```
 $ vagrant ssh master1 -- apt list kubeadm
 $ vagrant ssh master1 -- apt list kubelet
@@ -109,53 +107,42 @@ $ vagrant ssh master1 -- apt-cache policy kubelet
 $ vagrant ssh master1 -- apt-cache policy kubectl
 ```
 
-The `kubeadm/ansible/roles/prepare/tasks/install.yml` installs all components of Kubernetes. In order to install a specific version of Kubernetes we have to define the version in `apt` command. E.g.:
-
-```yaml
-- name: install docker, kubernetes components (kubelet, kubeadm, kubectl) and ntp
-  apt: name={{ item }} state=present allow_unauthenticated=yes
-  with_items:
-    - docker.io
-    - kubelet=1.8.0-00
-    - kubeadm=1.8.0-00
-    - kubectl=1.8.0-00
-    - ntp
-```
-Make sure that the versions used are compatibles.
-
-
 ## 6. Getting access the Cluster from `kubectl`
 
 ```bash
 $ scp vagrant@master1:/home/vagrant/.kube/config master1.kubeconfig
+$ sed -i'.bak' 's/server: https:\/\/10.0.0.10:6443/server: https:\/\/master1:6443/g' master1.kubeconfig
 $ export KUBECONFIG=$PWD/master1.kubeconfig
 ```
-Now, update `master1.kubeconfig` changing `server: https://10.0.0.10:6443` for `server: https://master1:6443`.
+
+Update local `/etc/hosts` file with:
 ```bash
-$ sed -i'.bak' 's/server: https:\/\/10.0.0.10:6443/server: https:\/\/master1:6443/g' master1.kubeconfig
+$ sudo nano /etc/hosts
+
+127.0.0.1 master1
 ```
-And ready. You can connect to remote Kubernetes Cluster:
+
+Now, you can connect to remote Kubernetes Cluster:
 ```bash
 $ kubectl get nodes
-NAME      STATUS    ROLES     AGE       VERSION
-master1   Ready     master    1h        v1.10.2
-node1     Ready     <none>    1h        v1.10.2
-node2     Ready     <none>    1h        v1.10.2
 ```
 
 ## 7. Installing Weave Scope
 
 ```bash
 $ kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+$ kubectl get pod,svc -n weave
 ```
-Above will create by default a ClusterIP, which we couldn't reach it. For that we have to deploy a NodePort Service and open the specified port. In this sample is `3002` port.
+
+Above will create by default a ClusterIP, which we couldn't reach it. For that we have to deploy a NodePort Service and open the specified port. In this sample is `30002` port.
 ```bash
 $ kubectl -n weave apply -f https://raw.githubusercontent.com/chilcano/ansible-role-weave-scope/master/sample-2-weave-scope-app-svc.yml
 $ kubectl get svc/weave-scope-app-svc -n weave -o jsonpath='{.spec.ports[0].nodePort}'
-3002
+30002
+```
 
-Now open the 3002 port in your Kubernetes Master.
-
+Now open Weave Scope webapp using the `30002` port.
+```bash
 $ open http://master1:$(kubectl get svc/weave-scope-app-svc -n weave -o jsonpath='{.spec.ports[0].nodePort}')
 ```
 
@@ -178,6 +165,7 @@ svc/hello-svc-cip   ClusterIP      10.105.237.40    <none>        5010/TCP      
 svc/hello-svc-lb    LoadBalancer   10.105.247.136   <pending>     5020:30304/TCP   17h       app=hello
 svc/hello-svc-np    NodePort       10.96.246.166    <none>        5030:31014/TCP   17h       app=hello
 ```
+
 This shows us that we do have 3 ways to call `hello-v1` and `hello-v2`, each service is listening in different ports (5010, 5020 and 5030) and different IP addresses, that doesn't mean that `hello-v1` and `hello-v2` are accesible from outside (public network). A ClusterIP Service is available internally, a LoadBalancer would be available from outside if the Edge Proxy in the K8s Cluster was configured properly. Finally, a NodePort Service is available internally in the node only.
 
 In other words, we have to get access to K8s Cluster before calling the services.
@@ -278,5 +266,5 @@ Hello version: v1, instance: hello-v1-d9b64698c-swd97
 ## 9. Working with Sidecars
 
 ```bash
-....
+TBC
 ```

@@ -8,17 +8,18 @@
     kubectl apply -f /etc/kubectl/weave.yml
   register: weavenet_response
   ignore_errors: yes
-- name: copy weavenet deployment file 'weavenet_2.3.0.yml' to remote server
+- name: copy weavenet deployment file 'weavenet_2.3.0.yml' to remote host
   copy:
     src: "{{ role_path }}/files/weavenet_2.3.0.yml"
     dest: /etc/kubectl/weavenet_2.3.0.yml
   when: weavenet_response is failed
-- name: install weavenet from 'local machine'
+- name: install weavenet in remote host
   shell: >
     export KUBECONFIG=/etc/kubernetes/admin.conf ;
     kubectl apply -f /etc/kubectl/weavenet_2.3.0.yml
   when: weavenet_response is failed
-- shell: >
+- name: waiting for getting up the weavenet (SDN)
+  shell: >
     export KUBECONFIG=/etc/kubernetes/admin.conf ;
     kubectl get pods -n kube-system -l name=weave-net
   register: result

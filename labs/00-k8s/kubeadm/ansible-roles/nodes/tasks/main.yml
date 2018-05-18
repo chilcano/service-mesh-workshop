@@ -3,14 +3,13 @@
 - shell: "cat /etc/kubeadm-join.sh"
   register: cat_kubeadm_join
   when: inventory_hostname == master_hostname
-
 - set_fact:
     kubeadm_join: "{{cat_kubeadm_join.stdout}}"
   when: inventory_hostname == master_hostname
 - name: join nodes into cluster
   shell: >
      systemctl stop kubelet ; kubeadm reset ;
-     echo "{{hostvars[master_hostname].kubeadm_join}}" >/etc/kubeadm-join.sh ;
+     echo "{{ hostvars[master_hostname].kubeadm_join }}" >/etc/kubeadm-join.sh ;
      bash /etc/kubeadm-join.sh
   args:
     creates: /etc/kubeadm-join.sh

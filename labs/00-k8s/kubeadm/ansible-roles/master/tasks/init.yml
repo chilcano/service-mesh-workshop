@@ -1,10 +1,18 @@
 - lineinfile: dest=/etc/sysctl.conf line='net.bridge.bridge-nf-call-ip6tables = 1' state=present
 - lineinfile: dest=/etc/sysctl.conf line='net.bridge.bridge-nf-call-iptables = 1' state=present
 - name: initialize kubeadm
+#  shell: >
+#       kubeadm reset &&
+#       sysctl -p &&
+#       kubeadm init --apiserver-advertise-address=10.0.0.10 --pod-network-cidr=10.244.0.0/16
+#  shell: >
+#       kubeadm reset &&
+#       sysctl -p &&
+#       kubeadm init --apiserver-advertise-address={{ ansible_ssh_host }} --pod-network-cidr=10.244.0.0/16 --kubernetes-version=v{{ _k8s_version }}
   shell: >
        kubeadm reset &&
        sysctl -p &&
-       kubeadm init --apiserver-advertise-address=10.0.0.10 --pod-network-cidr=10.244.0.0/16
+       kubeadm init --apiserver-advertise-address={{ k8s_net_ip_priv }} --pod-network-cidr=10.244.0.0/16 --kubernetes-version=v{{ _k8s_version }}
   args:
     creates: /etc/kubeadm-join.sh
   register: kubeadm_out

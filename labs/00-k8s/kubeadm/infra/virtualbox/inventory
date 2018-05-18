@@ -1,0 +1,11 @@
+[masters]
+master1  k8s_net_ip_priv=10.0.0.10
+
+[nodes]
+node1    k8s_net_ip_priv=10.0.0.11
+node2    k8s_net_ip_priv=10.0.0.12
+
+[all:vars]
+ansible_user=vagrant
+_k8s_version=1.10.0
+_k8s_version_deb_min="00"

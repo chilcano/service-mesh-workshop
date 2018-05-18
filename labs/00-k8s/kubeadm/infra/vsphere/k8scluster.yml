@@ -4,14 +4,16 @@
   become: True
   gather_facts: True
   roles:
-    - { role: 'prepare', tags: 'prepare' }
+    - role: ../../ansible-roles/prepare
+      tags: 'prepare'
 
 - name: initialize master
   hosts: masters
   become: True
   gather_facts: False
   roles:
-    - { role: 'master', tags: 'master' }
+    - role: ../../ansible-roles/master
+      tags: 'master'
 
 - name: setup nodes
   hosts: all
@@ -20,4 +22,5 @@
   vars:
     master_hostname: "{{ groups['masters'][0] }}"
   roles:
-    - { role: 'nodes', tags: 'nodes' }
+    - role: ../../ansible-roles/nodes
+      tags: 'nodes'
