@@ -1,4 +1,4 @@
-# Creating a Kubernetes Cluster with 'kubeadm' and existing VMs
+# Creating a Kubernetes Cluster with 'kubeadm' on existing VMs
 
 Requisites:
 - VMs based on Ubuntu 16.04 Xenial
@@ -74,21 +74,14 @@ kube-system   weave-net-tv6f8               2/2       Running   0          9m
 
 We are going to use the IP address of your first master VM (`oz1` and `172.16.70.15`).
 ```bash
-$ scp k8sadmin@172.16.70.15:/home/k8sadmin/.kube/config oz1.kubeconfig
-$ sed -i'.bak' 's/server: https:\/\/172.16.70.15:6443/server: https:\/\/oz1:6443/g' oz1.kubeconfig
-$ export KUBECONFIG=$PWD/oz1.kubeconfig
+$ scp k8sadmin@172.16.70.15:/home/k8sadmin/.kube/config ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/server: https:\/\/172.16.70.15:6443/server: https:\/\/oz1:15443/g' ~/.kube/oz1.kubeconfig
+$ export KUBECONFIG=~/.kube/oz1.kubeconfig
 ```
 
 Create a SSH tunnel to forward the `6443` port of Kubernetes API Server to your local computer.
 ```bash
-$ ssh -nNT -L 6443:oz1:6443 k8sadmin@172.16.70.15
-```
-
-Add `oz1` and `127.0.0.1` to `/etc/hosts`.
-```bash
-$ sudo nano /etc/hosts
-
-127.0.0.1      oz1
+$ ssh -nNT -L 44315:localhost:6443 k8sadmin@172.16.70.15
 ```
 
 And ready.
@@ -100,12 +93,12 @@ $ kubectl get pod --all-namespaces
 Also, we can check if standard Kubernetes ports are opened.
 ```bash
 $ nc -zv 172.16.70.15 22
-$ nc -zv oz1 6443
+$ nc -zv 127.0.0.1 44315
 ```
 
-### 2.2. Creating SSH tunnels to forward new ports.
+### 2.2. Creating a new SSH tunnel to forward to any services.
 
-For example, we are going to install Weave Scope and create a tunnel to the `30002` port.
+For example, we are going to install Weave Scope and create a tunnel to forward the traffic to the `30002` port.
 ```bash
 $ kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 $ kubectl get pod,svc -n weave
@@ -114,13 +107,13 @@ $ kubectl get svc/weave-scope-app-svc -n weave -o jsonpath='{.spec.ports[0].node
 30002
 ```
 
-Let's create the SSH tunnel.
+Let's create a new SSH tunnel to forward `30015` to `30002` (use `oz1` as hostname for weave scope).
 ```bash
-$ ssh -nNT -L 30002:oz1:30002 k8sadmin@172.16.70.15
-$ nc -zv oz1 30002
+$ ssh -nNT -L 30015:oz1:30002 k8sadmin@172.16.70.15
+$ nc -zv 127.0.0.1 30015
 ```
 
-Now open Weave Scope (web application) using the `30002` port from your browser.
+Now open Weave Scope (web application) using the `30015` port from your browser.
 ```bash
-$ open http://master1:$(kubectl get svc/weave-scope-app-svc -n weave -o jsonpath='{.spec.ports[0].nodePort}')
+$ open http://localhost:30015
 ```
