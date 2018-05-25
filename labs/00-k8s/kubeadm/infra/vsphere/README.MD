@@ -152,6 +152,9 @@ $ KUBECONFIG=~/.kube/config:~/.kube/oz1.kubeconfig:~/.kube/rog1.kubeconfig kubec
 $ mv ~/.kube/config ~/.kube/config.bak && mv ~/.kube/merged.kubeconfig ~/.kube/config
 $ unset KUBECONFIG
 
+$ ssh -nNT -L 44312:localhost:6443 k8sadmin@172.16.70.12
+$ ssh -nNT -L 44315:localhost:6443 k8sadmin@172.16.70.15
+
 $ kubectl config use-context oz-admin@oz
 $ kubectl config use-context rog-admin@rog
 
