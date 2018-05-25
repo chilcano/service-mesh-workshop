@@ -19,19 +19,15 @@
     - name: add inventory to remote /etc/hosts file
       lineinfile:
         dest: /etc/hosts
-        #regexp: '.*{{ item }}$'
         regexp: "^{{ hostvars[item]['ansible_ssh_host'] }}"
-        #line: "{{ hostvars[item].ansible_default_ipv4.address }} {{item}}"
         line: "{{ hostvars[item]['ansible_ssh_host'] }}  {{item}}"
         state: present
       when: hostvars[item]['ansible_ssh_host'] is defined
-      #with_items: groups['all']
       with_items: "{{ groups['all'] }}"
 
     - name: remove swap in /etc/fstab file in remote host
       lineinfile:
         dest: /etc/fstab
-        #regexp: '^/[\S]+\s+none\s+swap '
         regexp: '^[\S]+\s+none\s+swap '
         state: absent
 

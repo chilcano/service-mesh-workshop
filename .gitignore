@@ -5,7 +5,6 @@
 *.bcn
 *.man
 *.log
-*.kubeconfig
 *.config
 *.bak
 kvm/

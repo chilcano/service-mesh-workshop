@@ -13,6 +13,3 @@ _k8s_version_deb_min="00"
 _proxy_http=http://10.0.11.1:3128
 _proxy_https=http://10.0.11.1:3128
 _proxy_no=localhost,127.0.0.1
-
-[masters:vars]
-path_to_ssh_key=/Users/Chilcano/.ssh/id_rsa.pub

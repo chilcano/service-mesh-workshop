@@ -75,8 +75,7 @@ kube-system   weave-net-tv6f8               2/2       Running   0          9m
 We are going to use the IP address of your first master VM (`oz1` and `172.16.70.15`).
 ```bash
 $ scp k8sadmin@172.16.70.15:/home/k8sadmin/.kube/config ~/.kube/oz1.kubeconfig
-$ sed -i'.bak' 's/server: https:\/\/172.16.70.15:6443/server: https:\/\/oz1:15443/g' ~/.kube/oz1.kubeconfig
-$ export KUBECONFIG=~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/server: https:\/\/172.16.70.15:6443/server: https:\/\/oz1:44315/g' ~/.kube/oz1.kubeconfig
 ```
 
 Create a SSH tunnel to forward the `6443` port of Kubernetes API Server to your local computer.
@@ -84,21 +83,74 @@ Create a SSH tunnel to forward the `6443` port of Kubernetes API Server to your 
 $ ssh -nNT -L 44315:localhost:6443 k8sadmin@172.16.70.15
 ```
 
-And ready.
-```bash
-$ kubectl get nodes
-$ kubectl get pod --all-namespaces
-```
-
-Also, we can check if standard Kubernetes ports are opened.
+Check if standard Kubernetes ports are opened.
 ```bash
 $ nc -zv 172.16.70.15 22
 $ nc -zv 127.0.0.1 44315
 ```
 
-### 2.2. Creating a new SSH tunnel to forward to any services.
+And ready.
+```bash
+$ export KUBECONFIG=~/.kube/oz1.kubeconfig
+$ kubectl get nodes
+$ kubectl get pod --all-namespaces
+```
 
-For example, we are going to install Weave Scope and create a tunnel to forward the traffic to the `30002` port.
+Or we can pass the `--kubeconfig` as parameter.
+```bash
+$ kubectl --kubeconfig ~/.kube/oz1.kubeconfig get nodes
+$ kubectl --kubeconfig ~/.kube/oz1.kubeconfig get pod --all-namespaces
+```
+
+### 2.2. Getting access to multiples Kubernetes Clusters from your local computer
+
+We can merge all `kube config` (e.g. `oz1.kubeconfig` and `rog1.kubeconfig`) files into `~/.kube/config`. Before we have to change some things such as `cluster.name`, `user.name`, `context.name` and remove all `current-context`.
+```bash
+$ sed -i'.bak' 's/name: kubernetes$/name: oz/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/cluster: kubernetes$/cluster: oz/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/user: kubernetes-admin$/user: oz-admin/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/name: kubernetes-admin@kubernetes$/name: oz-admin@oz/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/name: kubernetes-admin$/name: oz-admin/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/current-context: kubernetes-admin@kubernetes$/#current-context: oz-admin@oz/g' ~/.kube/oz1.kubeconfig
+
+$ sed -i'.bak' 's/name: kubernetes$/name: rog/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/cluster: kubernetes$/cluster: rog/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/user: kubernetes-admin$/user: rog-admin/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/name: kubernetes-admin@kubernetes$/name: rog-admin@rog/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/name: kubernetes-admin$/name: rog-admin/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/current-context: kubernetes-admin@kubernetes$/#current-context: rog-admin@rog/g' ~/.kube/oz1.kubeconfig
+```
+
+We are ready to merge both `kubeconfig` files.
+```bash
+$ KUBECONFIG=~/.kube/config:~/.kube/oz1.kubeconfig:~/.kube/rog1.kubeconfig kubectl config view --flatten > ~/.kube/merged.kubeconfig
+$ mv ~/.kube/config ~/.kube/config.bak && mv ~/.kube/merged.kubeconfig ~/.kube/config
+$ unset KUBECONFIG
+```
+
+Now, create SSH tunnels to forward the `6443` port of Kubernetes API Server to your local computer.
+```bash
+$ ssh -nNT -L 44312:localhost:6443 k8sadmin@172.16.70.12
+$ ssh -nNT -L 44315:localhost:6443 k8sadmin@172.16.70.15
+```
+
+Now, we can select the cluster that we want to manage:
+```
+$ kubectl config use-context oz-admin@oz
+$ kubectl config use-context rog-admin@rog
+
+$ kubectl get nodes
+$ kubectl get pod --all-namespaces
+```
+
+### 2.3. Creating a new SSH tunnel to forward to any services.
+
+> Bear in mind that creating a SSH tunnel to get access to internal services __is a temporary solution__. We must not open port every time that we want get access a new deployed service.
+>
+> You should use an Ingress Controller and forward all traffic to an unique exposed port available in the Ingress Controller.
+> The Ingress Controller will work as part of a L7 Distributed Firewall.
+
+We are going to install Weave Scope and create a tunnel to forward the traffic to the `30002` port.
 ```bash
 $ kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 $ kubectl get pod,svc -n weave
