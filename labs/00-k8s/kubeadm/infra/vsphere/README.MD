@@ -113,12 +113,12 @@ $ sed -i'.bak' 's/name: kubernetes-admin@kubernetes$/name: oz-admin@oz/g' ~/.kub
 $ sed -i'.bak' 's/name: kubernetes-admin$/name: oz-admin/g' ~/.kube/oz1.kubeconfig
 $ sed -i'.bak' 's/current-context: kubernetes-admin@kubernetes$/#current-context: oz-admin@oz/g' ~/.kube/oz1.kubeconfig
 
-$ sed -i'.bak' 's/name: kubernetes$/name: rog/g' ~/.kube/oz1.kubeconfig
-$ sed -i'.bak' 's/cluster: kubernetes$/cluster: rog/g' ~/.kube/oz1.kubeconfig
-$ sed -i'.bak' 's/user: kubernetes-admin$/user: rog-admin/g' ~/.kube/oz1.kubeconfig
-$ sed -i'.bak' 's/name: kubernetes-admin@kubernetes$/name: rog-admin@rog/g' ~/.kube/oz1.kubeconfig
-$ sed -i'.bak' 's/name: kubernetes-admin$/name: rog-admin/g' ~/.kube/oz1.kubeconfig
-$ sed -i'.bak' 's/current-context: kubernetes-admin@kubernetes$/#current-context: rog-admin@rog/g' ~/.kube/oz1.kubeconfig
+$ sed -i'.bak' 's/name: kubernetes$/name: rog/g' ~/.kube/rog1.kubeconfig
+$ sed -i'.bak' 's/cluster: kubernetes$/cluster: rog/g' ~/.kube/rog1.kubeconfig
+$ sed -i'.bak' 's/user: kubernetes-admin$/user: rog-admin/g' ~/.kube/rog1.kubeconfig
+$ sed -i'.bak' 's/name: kubernetes-admin@kubernetes$/name: rog-admin@rog/g' ~/.kube/rog1.kubeconfig
+$ sed -i'.bak' 's/name: kubernetes-admin$/name: rog-admin/g' ~/.kube/rog1.kubeconfig
+$ sed -i'.bak' 's/current-context: kubernetes-admin@kubernetes$/#current-context: rog-admin@rog/g' ~/.kube/rog1.kubeconfig
 ```
 
 We are ready to merge both `kubeconfig` files.
@@ -143,7 +143,23 @@ $ kubectl get nodes
 $ kubectl get pod --all-namespaces
 ```
 
-### 2.3. Creating a new SSH tunnel to forward to any services.
+### 2.3. Ansible Playbook for getting and merging multiples kubeconfig files
+
+If you don't want execute several commands in point `2.1.` and `2.2.`, you can use the `` Ansible Playbook and a new `inventory.kubeconfig` inventory file.
+```bash
+$ ansible-playbook k8scluster_merge_kubeconfig.yml -k -K -i inventory.kubeconfig
+$ KUBECONFIG=~/.kube/config:~/.kube/oz1.kubeconfig:~/.kube/rog1.kubeconfig kubectl config view --flatten > ~/.kube/merged.kubeconfig
+$ mv ~/.kube/config ~/.kube/config.bak && mv ~/.kube/merged.kubeconfig ~/.kube/config
+$ unset KUBECONFIG
+
+$ kubectl config use-context oz-admin@oz
+$ kubectl config use-context rog-admin@rog
+
+$ kubectl get nodes
+$ kubectl get pod --all-namespaces
+```
+
+### 2.4. Creating a new SSH tunnel to forward to any services.
 
 > Bear in mind that creating a SSH tunnel to get access to internal services __is a temporary solution__. We must not open port every time that we want get access a new deployed service.
 >
