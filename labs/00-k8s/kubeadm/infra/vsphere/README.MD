@@ -179,12 +179,12 @@ $ kubectl get pod --all-namespaces
 
 ## 4. Publishing Services out of Kubernetes Cluster
 
-### 4.1. Creating a SSH tunnel to forward to a service
-
 > Bear in mind that creating a SSH tunnel to get access to internal services __is a temporary solution__. We must not open port every time that we want get access a new deployed service.
 >
 > You should use an Ingress Controller and forward all traffic to an unique exposed port available in the Ingress Controller.
 > The Ingress Controller will work as part of a L7 Distributed Firewall.
+
+### 4.1. Creating a SSH tunnel to forward to a service
 
 We are going to install Weave Scope and create a tunnel to forward the traffic to the `30002` port.
 ```bash
