@@ -9,12 +9,12 @@ Requisites:
 ## Content
 * [1. Preparing VMs](#1-preparing-vms)
 * [2. Provision of Kubernetes Cluster](#2-provision-of-kubernetes-cluster)
-  * [2.1. Getting access the created Cluster](#getting-access-to-created-cluster)
+  * [2.1. Getting access the created Cluster](#2-1-getting-access-to-created-cluster)
 * [3. Access to multiples Kubernetes Clusters](#3-access-to-multiples-kubernetes-clusters)
-  * [3.1. Getting access to multiples Kubernetes Clusters from local host](#getting-access-to-multiples-kubernetes-clusters)
-  * [3.2. Ansible Playbook for getting and merging multiples kubeconfig files](#ansible-playbook-for-getting-and-merging-multiples-kubeconfig-files)
-* [4. Publishing Services out of Kubernetes Cluster](#publishing-services-out-of-kubernetes-cluster)
-  * [4.1. Creating a new SSH tunnel to forward to any services](#creating-a-new-ssh-tunnel-to-forward-to-any-services)
+  * [3.1. Getting access to multiples Kubernetes Clusters from local host](#3-1-getting-access-to-multiples-kubernetes-clusters)
+  * [3.2. Ansible Playbook for getting and merging multiples kubeconfig files](#3-2-ansible-playbook-for-getting-and-merging-multiples-kubeconfig-files)
+* [4. Publishing Services out of Kubernetes Cluster](#4-publishing-services-out-of-kubernetes-cluster)
+  * [4.1. Creating a new SSH tunnel to forward to any services](#4-1-creating-a-new-ssh-tunnel-to-forward-to-any-services)
 
 ## 1. Preparing VMs
 
