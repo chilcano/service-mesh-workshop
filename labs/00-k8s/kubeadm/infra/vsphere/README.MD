@@ -1,7 +1,20 @@
 # Creating a Kubernetes Cluster with 'kubeadm' on existing VMs
 
 Requisites:
-- VMs based on Ubuntu 16.04 Xenial
+- VMs created previously.
+- VMs based on Ubuntu 16.04 Xenial.
+- VMs with access to `hub.docker.com` and `gcr.io`.
+- VMs with access to `deb http://apt.kubernetes.io` and `deb http://*.ubuntu.com/ubuntu`.
+
+## Content
+1. [Preparing VMs](#preparing-vms)
+2. [Provision of Kubernetes Cluster](#provision-of-kubernetes-cluster)
+  2.1. [Getting access the created Cluster](#getting-access-to-created-cluster)
+3. [Access to multiples Kubernetes Clusters](#access-to-multiples-kubernetes-clusters)
+  3.1. [Getting access to multiples Kubernetes Clusters from local host](#getting-access-to-multiples-kubernetes-clusters)
+  3.2. [Ansible Playbook for getting and merging multiples kubeconfig files](#ansible-playbook-for-getting-and-merging-multiples-kubeconfig-files)
+4. [Publishing Services out of Kubernetes Cluster](#publishing-services-out-of-kubernetes-cluster)
+  4.1. [Creating a new SSH tunnel to forward to any services](#creating-a-new-ssh-tunnel-to-forward-to-any-services)
 
 ## 1. Preparing VMs
 
@@ -70,7 +83,7 @@ kube-system   weave-net-rzmzf               2/2       Running   0          6m
 kube-system   weave-net-tv6f8               2/2       Running   0          9m
 ```
 
-### 2.1. Getting access from your local computer
+### 2.1. Getting access to created Cluster
 
 We are going to use the IP address of your first master VM (`oz1` and `172.16.70.15`).
 ```bash
@@ -102,9 +115,11 @@ $ kubectl --kubeconfig ~/.kube/oz1.kubeconfig get nodes
 $ kubectl --kubeconfig ~/.kube/oz1.kubeconfig get pod --all-namespaces
 ```
 
-### 2.2. Getting access to multiples Kubernetes Clusters from your local computer
+## 3. Access to multiples Kubernetes Clusters
 
-We can merge all `kube config` (e.g. `oz1.kubeconfig` and `rog1.kubeconfig`) files into `~/.kube/config`. Before we have to change some things such as `cluster.name`, `user.name`, `context.name` and remove all `current-context`.
+### 3.1. Getting access to multiples Kubernetes Clusters
+
+From local host, we can merge all `kube config` (e.g. `oz1.kubeconfig` and `rog1.kubeconfig`) files into `~/.kube/config`. Before we have to change some things such as `cluster.name`, `user.name`, `context.name` and remove all `current-context`.
 ```bash
 $ sed -i'.bak' 's/name: kubernetes$/name: oz/g' ~/.kube/oz1.kubeconfig
 $ sed -i'.bak' 's/cluster: kubernetes$/cluster: oz/g' ~/.kube/oz1.kubeconfig
@@ -143,7 +158,7 @@ $ kubectl get nodes
 $ kubectl get pod --all-namespaces
 ```
 
-### 2.3. Ansible Playbook for getting and merging multiples kubeconfig files
+### 3.2. Ansible Playbook for getting and merging multiples kubeconfig files
 
 If you don't want execute several commands in point `2.1.` and `2.2.`, you can use the `` Ansible Playbook and a new `inventory.kubeconfig` inventory file.
 ```bash
@@ -162,7 +177,9 @@ $ kubectl get nodes
 $ kubectl get pod --all-namespaces
 ```
 
-### 2.4. Creating a new SSH tunnel to forward to any services.
+## 4. Publishing Services out of Kubernetes Cluster
+
+### 4.1. Creating a new SSH tunnel to forward to any services
 
 > Bear in mind that creating a SSH tunnel to get access to internal services __is a temporary solution__. We must not open port every time that we want get access a new deployed service.
 >
