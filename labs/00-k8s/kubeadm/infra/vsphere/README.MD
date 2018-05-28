@@ -14,7 +14,7 @@ Requisites:
   * [3.1. Getting access to multiples Kubernetes Clusters from local host](#3-1-getting-access-to-multiples-kubernetes-clusters)
   * [3.2. Ansible Playbook for getting and merging multiples kubeconfig files](#3-2-ansible-playbook-for-getting-and-merging-multiples-kubeconfig-files)
 * [4. Publishing Services out of Kubernetes Cluster](#4-publishing-services-out-of-kubernetes-cluster)
-  * [4.1. Creating a new SSH tunnel to forward to any services](#4-1-creating-a-new-ssh-tunnel-to-forward-to-any-services)
+  * [4.1. Creating a SSH tunnel to forward to a service](#4-1-creating-a-ssh-tunnel-to-forward-to-a-service)
 
 ## 1. Preparing VMs
 
@@ -179,7 +179,7 @@ $ kubectl get pod --all-namespaces
 
 ## 4. Publishing Services out of Kubernetes Cluster
 
-### 4.1. Creating a new SSH tunnel to forward to any services
+### 4.1. Creating a SSH tunnel to forward to a service
 
 > Bear in mind that creating a SSH tunnel to get access to internal services __is a temporary solution__. We must not open port every time that we want get access a new deployed service.
 >
