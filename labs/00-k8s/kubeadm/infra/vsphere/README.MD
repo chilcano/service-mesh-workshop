@@ -7,10 +7,10 @@ Requisites:
 - VMs with access to `deb http://apt.kubernetes.io` and `deb http://*.ubuntu.com/ubuntu`.
 
 ## Content
-* [1. Preparing VMs](#preparing-vms)
-* [2. Provision of Kubernetes Cluster](#provision-of-kubernetes-cluster)
+* [1. Preparing VMs](#1-preparing-vms)
+* [2. Provision of Kubernetes Cluster](#2-provision-of-kubernetes-cluster)
   * [2.1. Getting access the created Cluster](#getting-access-to-created-cluster)
-* [3. Access to multiples Kubernetes Clusters](#access-to-multiples-kubernetes-clusters)
+* [3. Access to multiples Kubernetes Clusters](#3-access-to-multiples-kubernetes-clusters)
   * [3.1. Getting access to multiples Kubernetes Clusters from local host](#getting-access-to-multiples-kubernetes-clusters)
   * [3.2. Ansible Playbook for getting and merging multiples kubeconfig files](#ansible-playbook-for-getting-and-merging-multiples-kubeconfig-files)
 * [4. Publishing Services out of Kubernetes Cluster](#publishing-services-out-of-kubernetes-cluster)
