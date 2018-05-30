@@ -5,18 +5,18 @@
   gather_facts: True
 
   tasks:
-    - name: update hostname in remote host
+    - name: pre_config | hosts | update hostname in remote host
       hostname:
         name: '{{ inventory_hostname_short }}'
 
-    - name: update hostname to remote /etc/hosts file
+    - name: pre_config | hosts | add hostname in remote /etc/hosts file
       lineinfile:
         dest: /etc/hosts
         regexp: '^127\.0\.(0|1)\.1[ \t]+'
         line: '127.0.0.1 localhost {{ inventory_hostname_short }}'
         state: present
 
-    - name: add inventory to remote /etc/hosts file
+    - name: pre_config | hosts | add inventory to remote /etc/hosts file
       lineinfile:
         dest: /etc/hosts
         regexp: "^{{ hostvars[item]['ansible_ssh_host'] }}"
@@ -25,17 +25,17 @@
       when: hostvars[item]['ansible_ssh_host'] is defined
       with_items: "{{ groups['all'] }}"
 
-    - name: remove swap in /etc/fstab file in remote host
+    - name: pre_config | swap | remove swap in /etc/fstab file in remote host
       lineinfile:
         dest: /etc/fstab
         regexp: '^[\S]+\s+none\s+swap '
         state: absent
 
-    - name: disable swap in remote host
+    - name: pre_config | swap | disable swap in remote host
       command: swapoff -a
       when: ansible_swaptotal_mb > 0
 
-    - name: proxy | create dir to allocate proxy config files
+    - name: pre_config | proxy | create dir to allocate proxy config files
       file:
         path: '{{ item }}'
         state: directory
@@ -43,24 +43,42 @@
         - '/etc/systemd/system/docker.service.d/'
         - '/etc/sysconfig/'
 
-    - name: proxy | create 'http-proxy.conf' file to config a proxy for docker
+    - name: pre_config | proxy | create 'http-proxy.conf' file to config a proxy for docker
       copy:
         dest: "/etc/systemd/system/docker.service.d/http-proxy.conf"
         content: |
           [Service]
           Environment="HTTP_PROXY={{ _proxy_http }}" "NO_PROXY={{ _proxy_no }}"
 
-    - name: proxy | create 'https-proxy.conf' file to config a proxy for docker
+    - name: pre_config | proxy | create 'https-proxy.conf' file to config a proxy for docker
       copy:
         dest: "/etc/systemd/system/docker.service.d/https-proxy.conf"
         content: |
           [Service]
           Environment="HTTPS_PROXY={{ _proxy_https }}" "NO_PROXY={{ _proxy_no }}"
 
-    - name: proxy | create '/etc/sysconfig/proxy' file to config proxy for the VM
+    - name: pre_config | proxy | create '/etc/sysconfig/proxy' file to config proxy for the VM
       copy:
         dest: "/etc/sysconfig/proxy"
         content: |
           HTTP_PROXY={{ _proxy_http }}
           HTTPS_PROXY={{ _proxy_https }}
           NO_PROXY={{ _proxy_no }}
+
+  roles:
+  - role: dresden-weekly.network-interfaces
+    network_interfaces:
+    - device: '{{ _inet_dev_name }}'
+      description: Static IP address for Kubernetes Cluster
+      auto: true
+      family: inet
+      method: static
+      address: '{{ k8s_net_ip_priv }}'
+      network: '{{ _inet_dev_network }}'
+      netmask: '{{ _inet_dev_netmask }}'
+      gateway: '{{ _inet_dev_gateway }}'
+      mtu: 9000
+      #mtu: 1500
+      metric: 1
+      nameservers:
+      - '{{ _inet_dev_dns1 }}'

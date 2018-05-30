@@ -8,6 +8,7 @@ Requisites:
 
 ## Content
 * [1. Preparing VMs](#1-preparing-vms)
+  * [1.2. Change the password](#11-change-the-password)
 * [2. Provision of Kubernetes Cluster](#2-provision-of-kubernetes-cluster)
   * [2.1. Getting access the created Cluster](#21-getting-access-to-created-cluster)
 * [3. Access to multiples Kubernetes Clusters](#3-access-to-multiples-kubernetes-clusters)
@@ -19,6 +20,7 @@ Requisites:
 ## 1. Preparing VMs
 
 We need create a set of VMs based on Ubuntu 16.04 Xenial, get their IP addresses and write an `inventory` file required for Ansible.
+Additionally, we should remove `swap` partition and set static IP address for the interface `ens160` which Kubernetes Cluster is going to use for pod networking.
 
 ```bash
 $ git clone https://github.com/chilcano/service-mesh-workshop
@@ -30,7 +32,7 @@ For example, we are going to create a Kubernetes Cluster with 3 VMs (oz1, oz2 an
 ```bash
 $ vi inventory
 
-[[masters]
+[masters]
 oz1  ansible_ssh_host=172.16.70.15  k8s_net_ip_priv=172.16.70.15
 
 [nodes]
@@ -45,11 +47,42 @@ _k8s_version_deb_min="00"
 _proxy_http=http://10.0.11.1:3128
 _proxy_https=http://10.0.11.1:3128
 _proxy_no=localhost,127.0.0.1
+_inet_dev_name=ens160
+_inet_dev_network=172.16.70.0
+_inet_dev_netmask=255.255.255.0
+_inet_dev_gateway=172.16.70.254
+_inet_dev_dns1=10.0.10.1
 ```
 
-Once done, run the `k8scluster_pre_config.yml` Ansible playbook and you will be ready to provision the Cluster with `k8scluster.yml`
+Once done, run the `k8scluster_pre_config.yml` Ansible playbook, before you have to download the Ansible Role  `[dresden-weekly.ansible-network-interfaces](https://github.com/dresden-weekly/ansible-network-interfaces)`.
 ```bash
-$ ansible-playbook k8scluster_pre_config.yml -k -K
+$ sudo ansible-galaxy install dresden-weekly.network-interfaces
+$ ansible-playbook -i inventory k8scluster_pre_config.yml -k -K
+```
+
+### 1.1. Change the password
+
+We recommend to change the password in remote host, instead of doing manually you can use this Ansible Playbook:
+```bash
+$ ansible-playbook -i inventory k8scluster_chgpwd.yml -k -K
+SSH password:
+SUDO password[defaults to SSH password]:
+ ~> enter new password for existing user:
+confirm  ~> enter new password for existing user:
+...
+PLAY RECAP ****************************************************************
+oz1                        : ok=3    changed=2    unreachable=0    failed=0
+oz2                        : ok=3    changed=2    unreachable=0    failed=0
+oz3                        : ok=3    changed=2    unreachable=0    failed=0
+```
+
+Now, check it:
+```bash
+$ ssh k8sadmin@172.16.70.15
+
+$ ssh k8sadmin@172.16.70.16
+
+$ ssh k8sadmin@172.16.70.17
 ```
 
 ## 2. Provision of Kubernetes Cluster
@@ -181,8 +214,8 @@ $ kubectl get pod --all-namespaces
 
 > Bear in mind that creating a SSH tunnel to get access to internal services __is a temporary solution__. We must not open port every time that we want get access a new deployed service.
 >
-> You should use an Ingress Controller and forward all traffic to an unique exposed port available in the Ingress Controller.
-> The Ingress Controller will work as part of a L7 Distributed Firewall.
+> You should use an Edge Proxy (Load Balancer) and forward all traffic to an unique exposed port available in the Ingress Controller.
+> The Edge Proxy (Load Balancer) and Ingress Controller will work as a L7 Distributed Firewall.
 
 ### 4.1. Creating a SSH tunnel to forward to a service
 
@@ -204,4 +237,28 @@ $ nc -zv 127.0.0.1 30015
 Now open Weave Scope (web application) using the `30015` port from your browser.
 ```bash
 $ open http://localhost:30015
+```
+
+### 4.2. Edge Proxy (Load Balancer) instead of SSH tunnel
+
+The Edge Proxy (Load Balancer), Ingress Controller and Kubernetes Services (ClusterIP, NodePoort and LoadBalancer) are all different ways to get external traffic into your cluster. The traffic flow final is: `Edge Proxy -> Ingress Controller -> Kubernetes Services -> Pods`
+
+* Edge Proxy:
+  - NGINX as L4/L7 LoadBalancer
+  - HAProxy as L4/L7 LoadBalancer
+  - MetalLB (https://github.com/google/metallb)
+  - Heptio Gimbal (https://github.com/heptio/gimbal)
+  - Vulcand (https://github.com/vulcand/vulcand, http://vulcand.github.io)
+
+* Ingress Controller:
+  - NGINX as Ingress Controller
+  - HAProxy as Ingress Controller
+  - Istio Ingress Controller
+  - Vulcan Ingress Controller (https://github.com/zekizeki/vulcaningress)
+  - Traefik
+  - Heptio Contour
+  - Linkerd
+
+```bash
+xxx
 ```

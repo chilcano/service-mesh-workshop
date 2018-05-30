@@ -20,8 +20,8 @@ $ ansible all -i inventory -a "ping -c 3 holisticsecurity.io" -k
 $ ansible all -i inventory -a "df -h" -k
 $ ansible all -i inventory -a "ifconfig ens160" -k
 $ ansible all -i inventory -a "sudo shutdown -r now" -k -K
-$ ansible masters -m shell -a "sudo apt-get update" -k -K
 $ ansible masters -m shell -a "sudo reboot" -k -K
+$ ansible masters -m shell -a "sudo apt-get update" -k -K
 $ ansible masters -m "setup" -k
 $ ansible masters -m "setup" -a "filter=ansible_ens160" -k
 ```

@@ -1,0 +1,25 @@
+---
+- name: change password in remote host
+  hosts: all
+  become: True
+  gather_facts: True
+  vars_prompt:
+    - name: "pwd_update"
+      prompt: " ~> enter new password for existing user"
+      private: yes
+      #encrypt: "md5_crypt" # install python-passlib (sudo pip install passlib) in local machine before we can use it, use sha512_crypt for ubuntu
+      confirm: yes
+      #salt_size: 7
+
+  tasks:
+  - name: check if user '{{ ansible_user }}' exists
+    shell: "getent passwd {{ ansible_user }} | wc -l | tr -d ' '"
+    register: user_exist
+
+    ## 'password_hash' requires python-passlib ($ sudo pip install passlib)
+  - name: update password of existing user '{{ ansible_user }}'
+    user:
+      name: "{{ ansible_user }}"
+      update_password: always
+      password: "{{ pwd_update | password_hash( 'sha512', 65534 | random( seed=inventory_hostname ) | string ) }}"
+    when: user_exist
