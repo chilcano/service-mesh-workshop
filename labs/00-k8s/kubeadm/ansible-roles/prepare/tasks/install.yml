@@ -3,22 +3,22 @@
     name: apt-transport-https
     update_cache: yes   ## equivalent of apt-get update
 
-- name: add the deb kubernetes repository
+- name: Add the apt/deb K8s repository
   apt_repository:
     repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
     state: present
     filename: kubernetes-xenial
 
-- name: Remove previous installation of kubernetes components (kubelet, kubeadm, kubectl)
-  apt:
-    name: '{{ item }}'
-    state: absent
-  with_items:
-    - kubelet
-    - kubeadm
-    - kubectl
+#- name: Remove previous installation of kubernetes components (kubelet, kubeadm, kubectl)
+#  apt:
+#    name: '{{ item }}'
+#    state: absent
+#  with_items:
+#    - kubelet
+#    - kubeadm
+#    - kubectl
 
-- name: Install docker, kubernetes components (kubelet, kubeadm, kubectl) and ntp
+- name: Install Docker and K8s components (kubelet, kubeadm, kubectl) and ntp
   apt:
     name: '{{ item }}'
     state: present

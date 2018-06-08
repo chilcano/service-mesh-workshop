@@ -44,25 +44,98 @@ $ cd $TMPDIR
 $ rm -rf vagrant-*
 ```
 
-## 3. Copy ssh config to host
+## 3. Copy vagrant ssh config
 
 ```
 $ rm -rf ~/.ssh/config
 $ vagrant ssh-config >> ~/.ssh/config
 ```
 
-Update your `/etc/hosts` file of your local computer accordingly to your `Vagrantfile`:
+## 4. Ansible provision to create the Kubernetes Cluster
+
+Update your `/etc/hosts` file of your local computer and `inventory` file accordingly to your `Vagrantfile`.
+Also update `inventory` file with the Kubernetes' version that you want install.
+```bash
+$ apt-cache policy kubeadm
+
+1.10.4-00 500
+   500 http://apt.kubernetes.io kubernetes-xenial/main amd64 Packages
+1.10.3-00 500
+   500 http://apt.kubernetes.io kubernetes-xenial/main amd64 Packages
+1.10.2-00 500
+   500 http://apt.kubernetes.io kubernetes-xenial/main amd64 Packages
+1.10.1-00 500
+   500 http://apt.kubernetes.io kubernetes-xenial/main amd64 Packages
+*** 1.10.0-00 500
+   500 http://apt.kubernetes.io kubernetes-xenial/main amd64 Packages
+   100 /var/lib/dpkg/status
+...
 ```
+And to check what version was installed, to use this:
+```bash
+$ dpkg -l kubeadm
+```
+
+```bash
 $ sudo nano /etc/hosts
 
 127.0.0.1 master1 node1 node2
+
+$ nano inventory
+
+[masters]
+master1   k8s_net_ip_priv=10.0.0.10
+
+[nodes]
+node1     k8s_net_ip_priv=10.0.0.11
+node2     k8s_net_ip_priv=10.0.0.12
+
+[all:vars]
+ansible_user=vagrant
+ansible_python_interpreter=/usr/bin/python3
+_k8s_version=1.10.2
+_k8s_version_deb_min="00"
+
+## proxy
+#_proxy_http=http://10.0.11.1:3128
+#_proxy_https=http://10.0.11.1:3128
+#_proxy_no=localhost,127.0.0.1
+
+## set static ip address
+#_inet_dev_name=ens160
+#_inet_dev_network=172.16.70.0
+#_inet_dev_netmask=255.255.255.0
+#_inet_dev_gateway=172.16.70.254
+#_inet_dev_dns1=10.0.10.1
+
+## k8s master used to announce
+_k8s_master_hostname=master1
 ```
 
-## 4. Ansible provision to create the Kubernetes Cluster
-
-Update your `inventory` file accordingly to your `Vagrantfile`, once done run the `k8scluster.yml` Ansible Playbook:
+Check is created VMs are reachable:
 ```
-$ ansible-playbook k8scluster.yml
+$ ansible all -i inventory -m ping
+
+k8s-ubu-3 | SUCCESS => {
+    "changed": false,
+    "failed": false,
+    "ping": "pong"
+}
+k8s-ubu-1 | SUCCESS => {
+    "changed": false,
+    "failed": false,
+    "ping": "pong"
+}
+k8s-ubu-2 | SUCCESS => {
+    "changed": false,
+    "failed": false,
+    "ping": "pong"
+}
+```
+
+Run the `k8scluster.yml` Ansible Playbook:
+```
+$ ansible-playbook -i inventory k8scluster.yml
 ```
 
 ## 5. Checking the Kubernetes Cluster

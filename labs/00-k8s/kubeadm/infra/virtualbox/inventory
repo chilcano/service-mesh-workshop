@@ -1,11 +1,30 @@
 [masters]
-master1  k8s_net_ip_priv=10.0.0.10
+k8s-ubu-1   k8s_net_ip_priv=10.0.0.10
 
 [nodes]
-node1    k8s_net_ip_priv=10.0.0.11
-node2    k8s_net_ip_priv=10.0.0.12
+k8s-ubu-2   k8s_net_ip_priv=10.0.0.11
+k8s-ubu-3   k8s_net_ip_priv=10.0.0.12
 
 [all:vars]
 ansible_user=vagrant
-_k8s_version=1.10.0
+ansible_python_interpreter=/usr/bin/python3
+#_k8s_version=1.10.0
+#_k8s_version=1.10.2
+_k8s_version=1.10.3
+#_k8s_version=1.10.4
 _k8s_version_deb_min="00"
+
+## proxy
+#_proxy_http=http://10.0.11.1:3128
+#_proxy_https=http://10.0.11.1:3128
+#_proxy_no=localhost,127.0.0.1
+
+## set static ip address
+#_inet_dev_name=ens160
+#_inet_dev_network=172.16.70.0
+#_inet_dev_netmask=255.255.255.0
+#_inet_dev_gateway=172.16.70.254
+#_inet_dev_dns1=10.0.10.1
+
+## k8s master used to announce
+_k8s_master_hostname=k8s-ubu-1

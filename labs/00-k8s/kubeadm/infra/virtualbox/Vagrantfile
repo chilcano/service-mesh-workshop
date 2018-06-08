@@ -2,9 +2,9 @@ domain   = 'k8s'    ## used to identify private network for k8s cluster and the 
 
 # use two digits id below, please
 nodescluster = [
-  { :role => 'master', :hostname => 'master1', :ip => '10.0.0.10', :id => '10' },
-  { :role => 'worker', :hostname => 'node1',   :ip => '10.0.0.11', :id => '11' },
-  { :role => 'worker', :hostname => 'node2',   :ip => '10.0.0.12', :id => '12' },
+  { :role => 'master', :hostname => 'k8s-ubu-1', :ip => '10.0.0.11', :id => '11' },
+  { :role => 'worker', :hostname => 'k8s-ubu-2', :ip => '10.0.0.12', :id => '12' },
+  { :role => 'worker', :hostname => 'k8s-ubu-3', :ip => '10.0.0.13', :id => '13' },
 ]
 
 memory = 2048   ## MB
@@ -37,7 +37,8 @@ Vagrant.configure("2") do |config|
       end
       nodeconfig.vm.network :private_network, ip: node[:ip], virtualbox__intnet: domain   ## Adapter 2 Private Network for Kubernetes
       nodeconfig.vm.provider :virtualbox do |vb|
-        vb.name = node[:hostname] + "." + domain
+        #vb.name = node[:hostname] + "." + domain
+        vb.name = node[:hostname]
         vb.memory = memory
         vb.cpus = cpus
         vb.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
