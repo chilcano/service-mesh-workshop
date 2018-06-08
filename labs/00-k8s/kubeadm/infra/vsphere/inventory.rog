@@ -20,3 +20,4 @@ _inet_dev_network=172.16.70.0
 _inet_dev_netmask=255.255.255.0
 _inet_dev_gateway=172.16.70.254
 _inet_dev_dns1=10.0.10.1
+_k8s_master_hostname=rog1

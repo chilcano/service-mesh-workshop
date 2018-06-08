@@ -1,20 +1,38 @@
-- sysctl: name=net.bridge.bridge-nf-call-ip6tables value=1 state=present reload=yes sysctl_set=yes
-- sysctl: name=net.bridge.bridge-nf-call-iptables value=1 state=present reload=yes sysctl_set=yes
-- shell: "cat /etc/kubeadm-join.sh"
+- name: kubeadm join | Pass and reload bridged IPv4/IPv6 traffic to iptables' chains
+  sysctl:
+    name: '{{ item }}'
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: kubeadm join | Read 'kubeadm token' from master
+  shell: "cat /etc/kubeadm-join.sh"
   register: cat_kubeadm_join
-  when: inventory_hostname == master_hostname
-- set_fact:
-    kubeadm_join: "{{cat_kubeadm_join.stdout}}"
-  when: inventory_hostname == master_hostname
-- name: join nodes into cluster
+  #when: inventory_hostname == master_hostname
+  when: inventory_hostname == _k8s_master_hostname
+
+- name: kubeadm join | Set 'kubeadm_join' fact from master
+  set_fact:
+    kubeadm_join: "{{ cat_kubeadm_join.stdout }}"
+  #when: inventory_hostname == master_hostname
+  when: inventory_hostname == _k8s_master_hostname
+
+- name: kubeadm join | Join nodes into cluster
   shell: >
-     systemctl stop kubelet ; kubeadm reset ;
-     echo "{{ hostvars[master_hostname].kubeadm_join }}" >/etc/kubeadm-join.sh ;
+     systemctl stop kubelet ;
+     kubeadm reset ;
+     echo "{{ hostvars[master_hostname].kubeadm_join }}" > /etc/kubeadm-join.sh ;
      bash /etc/kubeadm-join.sh
   args:
     creates: /etc/kubeadm-join.sh
-  when: inventory_hostname != master_hostname
-- name: checking all nodes up from master
+  #when: inventory_hostname != master_hostname
+  when: inventory_hostname != _k8s_master_hostname
+
+- name: kubeadm join | Checking all workers up from master
   shell: >
       export KUBECONFIG=/etc/kubernetes/admin.conf ;
       kubectl get nodes {{item}}
@@ -23,4 +41,5 @@
   retries: 100
   delay: 10
   with_items: "{{ groups['nodes'] }}"
-  when: inventory_hostname == master_hostname
+  #when: inventory_hostname != master_hostname
+  when: inventory_hostname != _k8s_master_hostname

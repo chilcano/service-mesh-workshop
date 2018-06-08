@@ -1,5 +1,14 @@
-- sysctl: name=net.bridge.bridge-nf-call-ip6tables value=1 state=present reload=yes sysctl_set=yes
-- sysctl: name=net.bridge.bridge-nf-call-iptables value=1 state=present reload=yes sysctl_set=yes
+- name: weavenet | Pass bridged IPv4/IPv6 traffic to iptables' chains
+  sysctl:
+    name: '{{ item }}'
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
 - name: install weavenet from 'internet'
   shell: >
     export KUBECONFIG=/etc/kubernetes/admin.conf ;
@@ -8,16 +17,19 @@
     kubectl apply -f /etc/kubectl/weave.yml
   register: weavenet_response
   ignore_errors: yes
+
 - name: copy weavenet deployment file 'weavenet_2.3.0.yml' to remote host
   copy:
     src: "{{ role_path }}/files/weavenet_2.3.0.yml"
     dest: /etc/kubectl/weavenet_2.3.0.yml
   when: weavenet_response is failed
+
 - name: install weavenet in remote host
   shell: >
     export KUBECONFIG=/etc/kubernetes/admin.conf ;
     kubectl apply -f /etc/kubectl/weavenet_2.3.0.yml
   when: weavenet_response is failed
+  
 - name: waiting for getting up the weavenet (SDN)
   shell: >
     export KUBECONFIG=/etc/kubernetes/admin.conf ;

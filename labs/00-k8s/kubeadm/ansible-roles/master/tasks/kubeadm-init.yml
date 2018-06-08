@@ -1,0 +1,45 @@
+- name: kubeadm init | Pass bridged IPv4/IPv6 traffic to iptables' chains
+  sysctl:
+    name: '{{ item }}'
+    value: 1
+    state: present
+  with_items:
+    - net.bridge.bridge-nf-call-iptables
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: kubeadm init | Initialize
+  shell: >
+       kubeadm reset &&
+       sysctl -p &&
+       kubeadm init --apiserver-advertise-address={{ k8s_net_ip_priv }} --pod-network-cidr=10.244.0.0/16 --kubernetes-version=v{{ _k8s_version }}
+  args:
+    creates: /etc/kubeadm-join.sh
+  register: kubeadm_join_out
+
+- name: kubeadm init | Save '/etc/kubeadm-join.sh'
+  lineinfile:
+    path: /etc/kubeadm-join.sh
+    line: '{{ kubeadm_join_out.stdout_lines[-1] }}'
+    create: yes
+  when: kubeadm_join_out.stdout.find("kubeadm join") != -1
+
+- name: kubeadm init | Start kubelet service
+  service:
+    name: kubelet
+    state: started
+    enabled: yes
+
+- name: kubeadm init | Create '/etc/kubectl' directory
+  file:
+    name: /etc/kubectl
+    state: directory
+
+- name: kubeadm init | Fix configmap for proxy
+  shell: >
+    export KUBECONFIG=/etc/kubernetes/admin.conf ;
+    kubectl -n kube-system get cm/kube-proxy -o yaml
+    | sed -e 's!clusterCIDR: ""!clusterCIDR: "10.0.0.0/24"!' >/etc/kubectl/kube-proxy.map ;
+    kubectl -n kube-system replace cm/kube-proxy -f  /etc/kubectl/kube-proxy.map ;
+    kubectl -n kube-system delete pods -l k8s-app=kube-proxy
+  args:
+    creates: /etc/kubectl/kube-proxy.map

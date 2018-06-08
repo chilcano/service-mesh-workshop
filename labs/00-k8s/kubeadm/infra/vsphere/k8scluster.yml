@@ -1,5 +1,5 @@
 ---
-- name: prepare all (master and nodes)
+- name: Prepare all (master and nodes)
   hosts: all
   become: True
   gather_facts: True
@@ -7,7 +7,7 @@
     - role: ../../ansible-roles/prepare
       tags: 'prepare'
 
-- name: initialize master
+- name: Initialize master
   hosts: masters
   become: True
   gather_facts: False
@@ -15,7 +15,7 @@
     - role: ../../ansible-roles/master
       tags: 'master'
 
-- name: setup nodes
+- name: Setup workers
   hosts: all
   become: True
   gather_facts: False

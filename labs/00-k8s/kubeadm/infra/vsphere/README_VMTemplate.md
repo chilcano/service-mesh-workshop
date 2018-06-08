@@ -22,8 +22,16 @@ $ ansible all -i inventory -a "ifconfig ens160" -k
 $ ansible all -i inventory -a "sudo shutdown -r now" -k -K
 $ ansible masters -m shell -a "sudo reboot" -k -K
 $ ansible masters -m shell -a "sudo apt-get update" -k -K
+
 $ ansible masters -m "setup" -k
 $ ansible masters -m "setup" -a "filter=ansible_ens160" -k
+
+$ ansible all -m "setup" -a "filter=ansible_distribution" -k
+...
+Debian
+$ ansible all -m "setup" -a "filter=ansible_distribution_release" -k
+...
+stretch
 ```
 
 ## 1. Preparing VM as Template

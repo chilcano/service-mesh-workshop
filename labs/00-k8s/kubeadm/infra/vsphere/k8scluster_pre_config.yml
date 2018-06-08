@@ -20,7 +20,7 @@
       lineinfile:
         dest: /etc/hosts
         regexp: "^{{ hostvars[item]['ansible_ssh_host'] }}"
-        line: "{{ hostvars[item]['ansible_ssh_host'] }}  {{item}}"
+        line: "{{ hostvars[item]['ansible_ssh_host'] }}   {{item}}"
         state: present
       when: hostvars[item]['ansible_ssh_host'] is defined
       with_items: "{{ groups['all'] }}"

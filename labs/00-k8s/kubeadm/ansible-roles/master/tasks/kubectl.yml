@@ -1,13 +1,20 @@
-- name: update '.bash_profile' with 'KUBECONFIG=/etc/kubernetes/admin.conf'
+- name: kubectl | Update '.bash_profile' with 'KUBECONFIG=/etc/kubernetes/admin.conf'
   lineinfile:
     path: /root/.bash_profile
     line: 'export KUBECONFIG=/etc/kubernetes/admin.conf'
     create: yes
-- file: path='/home/{{ ansible_ssh_user }}/.kube' state=directory owner='{{ ansible_ssh_user }}'
-#- file: path=/home/vagrant/.kube state=directory owner=vagrant
-#- file: path=/home/ubuntu/.kube state=directory owner=ubuntu
-#- command: cp /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-- command: cp /etc/kubernetes/admin.conf /home/{{ ansible_ssh_user }}/.kube/config
-- file: name='/home/{{ ansible_ssh_user }}/.kube/config' state=file owner='{{ ansible_ssh_user }}'
-#- file: name=/home/vagrant/.kube/config state=file owner=vagrant
-#- file: name=/home/ubuntu/.kube/config state=file owner=ubuntu
+
+- name: kubectl | Create '~/.kube' dir
+  file:
+    path: '/home/{{ ansible_ssh_user }}/.kube'
+    state: directory
+    owner: '{{ ansible_ssh_user }}'
+
+- name: kubectl | Copy 'admin.conf' to '~/.kube/config'
+  command: cp /etc/kubernetes/admin.conf /home/{{ ansible_ssh_user }}/.kube/config
+
+- name: kubectl | Set owner for '~/.kube/config'
+  file:
+    name: '/home/{{ ansible_ssh_user }}/.kube/config'
+    state: file
+    owner: '{{ ansible_ssh_user }}'

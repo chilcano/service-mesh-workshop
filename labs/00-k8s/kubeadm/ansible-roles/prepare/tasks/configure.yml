@@ -1,4 +1,19 @@
-- sysctl: name=net.ipv4.ip_forward value=1 state=present reload=yes sysctl_set=yes
-- service: name=docker state=started enabled=yes
-- service: name=ntp state=started enabled=yes
-- service: name=kubelet state=started enabled=yes
+- name: Setup 'net.ipv4.ip_forward'
+  sysctl:
+    name: '{{ item }}'
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+  with_items:
+    - net.ipv4.ip_forward
+
+- name: Setup docker, kubelet, ntp services
+  service:
+    name: '{{ item }}'
+    state: started
+    enabled: yes
+  with_items:
+    - docker
+    - ntp
+    - kubelet
