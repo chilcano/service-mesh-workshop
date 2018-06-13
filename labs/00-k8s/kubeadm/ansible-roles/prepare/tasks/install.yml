@@ -1,7 +1,11 @@
-- name: Update deb repositories cache and install 'apt-transport-https' package
+- name: Update deb/apt repositories cache and install dependencies
   apt:
-    name: apt-transport-https
+    name: '{{ item }}'
     update_cache: yes   ## equivalent of apt-get update
+    state: latest
+  with_items:
+    - apt-transport-https
+    - ca-certificates
 
 - name: Add the apt/deb K8s repository
   apt_repository:
@@ -24,7 +28,7 @@
     state: present
     allow_unauthenticated: yes
   with_items:
-    - docker.io
+    - docker.io={{ _docker_version }}
     - kubelet={{ _k8s_version }}-{{ _k8s_version_deb_min }}
     - kubeadm={{ _k8s_version }}-{{ _k8s_version_deb_min }}
     - kubectl={{ _k8s_version }}-{{ _k8s_version_deb_min }}

@@ -8,7 +8,7 @@
   with_items:
     - net.ipv4.ip_forward
 
-- name: Setup Systemd Services for docker, kubelet, ntp
+- name: Setup Docker, Kubelet and NTP systemd services
   service:
     name: '{{ item }}'
     state: started

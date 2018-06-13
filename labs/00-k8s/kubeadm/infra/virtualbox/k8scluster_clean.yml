@@ -15,7 +15,7 @@
     register: kubeadm_init
     when: kubeadm_stat_result.stat.exists == True
 
-  - name: Remove the Docker and Kubelet Systemctl services
+  - name: Remove the Docker and Kubelet systemd services
     service:
       name: '{{ item }}'
       state: stopped
@@ -30,7 +30,7 @@
     apt:
       name: '{{ item }}'
       state: absent
-      purge: yes
+      #purge: yes
     with_items:
       - kubeadm
       - kubelet

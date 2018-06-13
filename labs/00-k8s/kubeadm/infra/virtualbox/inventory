@@ -1,9 +1,9 @@
 [masters]
-k8s-ubu-1   k8s_net_ip_priv=10.0.0.10
+k8s-ubu-1   k8s_net_ip_priv=10.0.0.11
 
 [nodes]
-k8s-ubu-2   k8s_net_ip_priv=10.0.0.11
-k8s-ubu-3   k8s_net_ip_priv=10.0.0.12
+k8s-ubu-2   k8s_net_ip_priv=10.0.0.12
+k8s-ubu-3   k8s_net_ip_priv=10.0.0.13
 
 [all:vars]
 ansible_user=vagrant
@@ -28,3 +28,6 @@ _k8s_version_deb_min="00"
 
 ## k8s master used to announce
 _k8s_master_hostname=k8s-ubu-1
+
+#_docker_version=1.10.3-0ubuntu6
+_docker_version=1.13.1-0ubuntu1~16.04.2

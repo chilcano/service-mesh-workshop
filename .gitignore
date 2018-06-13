@@ -8,3 +8,4 @@
 *.config
 *.bak
 kvm/
+rpi/

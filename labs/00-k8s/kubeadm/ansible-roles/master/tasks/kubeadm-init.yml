@@ -26,7 +26,7 @@
     create: yes
   when: kubeadm_join_out.stdout.find("kubeadm join") != -1
 
-- name: kubeadm init | Start kubelet service
+- name: kubeadm init | Start kubelet systemd service
   service:
     name: kubelet
     state: started

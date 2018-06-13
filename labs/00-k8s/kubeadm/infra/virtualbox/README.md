@@ -70,10 +70,29 @@ $ apt-cache policy kubeadm
    500 http://apt.kubernetes.io kubernetes-xenial/main amd64 Packages
    100 /var/lib/dpkg/status
 ...
+
+$ apt-cache policy docker.io
+docker.io:
+  Installed: 1.13.1-0ubuntu1~16.04.2
+  Candidate: 1.13.1-0ubuntu1~16.04.2
+  Version table:
+ *** 1.13.1-0ubuntu1~16.04.2 500
+        500 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 Packages
+        100 /var/lib/dpkg/status
+     1.10.3-0ubuntu6 500
+        500 http://archive.ubuntu.com/ubuntu xenial/universe amd64 Packages
+
+$ sudo apt-cache madison docker.io
+ docker.io | 1.13.1-0ubuntu1~16.04.2 | http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 Packages
+ docker.io | 1.10.3-0ubuntu6 | http://archive.ubuntu.com/ubuntu xenial/universe amd64 Packages
+ docker.io | 1.10.3-0ubuntu6 | http://archive.ubuntu.com/ubuntu xenial/universe Sources
+ docker.io | 1.13.1-0ubuntu1~16.04.2 | http://archive.ubuntu.com/ubuntu xenial-updates/universe Sources
 ```
+
 And to check what version was installed, to use this:
 ```bash
-$ dpkg -l kubeadm
+$ sudo dpkg -l kubeadm
+$ sudo dpkg -l docker.io
 ```
 
 ```bash

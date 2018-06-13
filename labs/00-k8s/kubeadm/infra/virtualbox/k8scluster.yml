@@ -1,5 +1,5 @@
 ---
-- name: Prepare all
+- name: Prepare all VMs
   hosts: all
   become: True
   gather_facts: True
@@ -17,7 +17,7 @@
   hosts: all
   become: True
   gather_facts: False
-  vars:
-    master_hostname: "{{ groups['masters'][0] }}"
+  #vars:
+  #  master_hostname: "{{ groups['masters'][0] }}"
   roles:
     - { role: '../../ansible-roles/nodes', tags: 'nodes' }

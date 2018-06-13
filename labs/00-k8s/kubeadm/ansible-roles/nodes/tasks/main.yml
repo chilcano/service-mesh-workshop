@@ -12,34 +12,30 @@
 - name: kubeadm join | Read 'kubeadm token' from master
   shell: "cat /etc/kubeadm-join.sh"
   register: cat_kubeadm_join
-  #when: inventory_hostname == master_hostname
   when: inventory_hostname == _k8s_master_hostname
 
 - name: kubeadm join | Set 'kubeadm_join' fact from master
   set_fact:
     kubeadm_join: "{{ cat_kubeadm_join.stdout }}"
-  #when: inventory_hostname == master_hostname
   when: inventory_hostname == _k8s_master_hostname
 
-- name: kubeadm join | Join nodes into cluster
+- name: kubeadm join | Save '/etc/kubeadm-join.sh' and join nodes into cluster
   shell: >
      systemctl stop kubelet ;
      kubeadm reset ;
-     echo "{{ hostvars[master_hostname].kubeadm_join }}" > /etc/kubeadm-join.sh ;
+     echo "{{ hostvars[_k8s_master_hostname].kubeadm_join }}" > /etc/kubeadm-join.sh ;
      bash /etc/kubeadm-join.sh
   args:
     creates: /etc/kubeadm-join.sh
-  #when: inventory_hostname != master_hostname
   when: inventory_hostname != _k8s_master_hostname
 
 - name: kubeadm join | Checking all workers up from master
   shell: >
       export KUBECONFIG=/etc/kubernetes/admin.conf ;
-      kubectl get nodes {{item}}
+      kubectl get nodes {{ item }}
   register: result
   until: result.stdout.find("Ready") != -1
   retries: 100
   delay: 10
   with_items: "{{ groups['nodes'] }}"
-  #when: inventory_hostname != master_hostname
-  when: inventory_hostname != _k8s_master_hostname
+  when: inventory_hostname == _k8s_master_hostname
