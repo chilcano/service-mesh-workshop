@@ -33,3 +33,23 @@
     - kubeadm={{ _k8s_version }}-{{ _k8s_version_deb_min }}
     - kubectl={{ _k8s_version }}-{{ _k8s_version_deb_min }}
     - ntp
+
+- name: Setup 'net.ipv4.ip_forward'
+  sysctl:
+    name: '{{ item }}'
+    value: 1
+    state: present
+    reload: yes
+    sysctl_set: yes
+  with_items:
+    - net.ipv4.ip_forward
+
+- name: Setup Docker, Kubelet and NTP systemd services
+  service:
+    name: '{{ item }}'
+    state: started
+    enabled: yes
+  with_items:
+    - docker
+    - ntp
+    - kubelet
