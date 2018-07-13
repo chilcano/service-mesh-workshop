@@ -2,7 +2,15 @@
 
 ## 1. Install Kubernetes Cli, Heptio AWS Authenticator and Weave AWS EKS Cli
 
-The AWS EKS provides version 1.10 of Kubernetes and needs `kubectl` version `1.10.3`. Then, let's install or update `kubectl`.
+The AWS EKS provides version 1.10 of Kubernetes and needs `kubectl` version `1.10.3`. 
+
+More info:
+- https://kubernetes.io/docs/tasks/tools/install-kubectl
+- https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
+
+### 1.1. For Mac OSX
+
+Install or update `kubectl`.
 ```sh
 $ brew install kubectl
 $ brew update kubectl
@@ -11,21 +19,20 @@ $ kubectl version --short --client
 Client Version: v1.10.5
 ```
 
-Install Heptio AWS Authenticator (this is for Mac OSX).
+Install Heptio AWS Authenticator.
 ```sh
 $ curl -o heptio-authenticator-aws https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/darwin/amd64/heptio-authenticator-aws
 $ chmod +x ./heptio-authenticator-aws; sudo mv ./heptio-authenticator-aws /usr/local/bin
 ```
-
-More info:
-- https://kubernetes.io/docs/tasks/tools/install-kubectl
-- https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
 Install `eksctl`.
 ```sh
 $ curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 $ sudo mv /tmp/eksctl /usr/local/bin
 ```
+
+### 1.2. For Linux
+
 
 ## 2. Create an AWS EKS Cluster
 
