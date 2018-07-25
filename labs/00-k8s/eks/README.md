@@ -1,6 +1,6 @@
 # AWS EKS
 
-## 1. Install Kubernetes Cli, Heptio AWS Authenticator and Weave AWS EKS Cli
+## 1. Install Kubernetes Cli, Heptio AWS Authenticator, AWS Cli and the Weave EKS Cli
 
 The AWS EKS provides version 1.10 of Kubernetes and needs `kubectl` version `1.10.3`. 
 
@@ -19,7 +19,7 @@ $ kubectl version --short --client
 Client Version: v1.10.5
 ```
 
-Install Heptio AWS Authenticator.
+Install `heptio-authenticator-aws`.
 ```sh
 $ curl -o heptio-authenticator-aws https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/darwin/amd64/heptio-authenticator-aws
 $ chmod +x ./heptio-authenticator-aws; sudo mv ./heptio-authenticator-aws /usr/local/bin
@@ -31,12 +31,7 @@ $ curl --silent --location "https://github.com/weaveworks/eksctl/releases/downlo
 $ sudo mv /tmp/eksctl /usr/local/bin
 ```
 
-### 1.2. For Linux
-
-
-## 2. Create an AWS EKS Cluster
-
-The AWS Cli is not required, but sometimes it's needed to work directly with AWS API. To install it execute the next commands:
+Install `awscli`. The AWS Cli is not mandatory, but sometimes it's needed to work directly with AWS API. To install it execute the next commands:
 ```sh
 $ brew install awscli
 $ brew update awscli
@@ -44,6 +39,55 @@ $ brew upgrade awscli
 $ aws --version
 aws-cli/1.15.40 Python/3.7.0 Darwin/17.6.0 botocore/1.10.40
 ```
+
+### 1.2. For Ubuntu
+
+Install `kubectl`.
+```sh
+$ sudo snap install kubectl --classic
+$ kubectl version --short --client
+Client Version: v1.11.0
+```
+
+Install `heptio-authenticator-aws`.
+```sh
+$ mkdir $HOME/bin
+$ curl -o heptio-authenticator-aws https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/bin/linux/amd64/heptio-authenticator-aws
+$ chmod +x ./heptio-authenticator-aws; sudo mv ./heptio-authenticator-aws $HOME/bin
+
+$ echo 'export PATH=$HOME/bin:$PATH' >> ~/.bash_profile
+$ source ~/.bash_profile
+
+$ heptio-authenticator-aws -h
+```
+
+Install `eksctl`.
+```sh
+$ curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+$ sudo mv /tmp/eksctl $HOME/bin
+$ eksctl version
+2018-07-25T15:48:04+01:00 [ℹ]  versionInfo = map[string]string{"builtAt":"2018-07-23T07:21:37Z", "gitCommit":"c332060348833792c9a69f1ef71d1c8d76c3ffd7", "gitTag":"0.1.0-beta.3"}
+```
+
+Install `awscli`.
+```sh
+$ sudo apt-get install -y curl
+$ curl -O https://bootstrap.pypa.io/get-pip.py
+$ python get-pip.py --user
+
+$ echo 'export PATH=~/.local/bin:$PATH' >> ~/.bash_profile
+$ source ~/.bash_profile
+
+$ pip --version
+pip 18.0 from /home/roger/.local/lib/python2.7/site-packages/pip (python 2.7)
+
+$ pip install awscli --upgrade --user
+
+$ aws --version
+aws-cli/1.15.64 Python/2.7.12 Linux/4.15.0-29-generic botocore/1.10.63
+```
+
+## 2. Create an AWS EKS Cluster
 
 ### 2.1. Prepare AWS credentials
 
