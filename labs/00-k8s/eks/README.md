@@ -89,7 +89,9 @@ aws-cli/1.15.64 Python/2.7.12 Linux/4.15.0-29-generic botocore/1.10.63
 
 ## 2. Create an AWS EKS Cluster
 
-### 2.1. Prepare AWS credentials
+### 2.1. Previous AWS preparation 
+
+#### 2.1.2. AWS credentials
 
 Create `~/.aws/credentials` file and fill out properly.
 
@@ -118,8 +120,9 @@ region = us-east-1
 output = json
 ```
 
-### 2.2. Generate SSH keys
+#### 2.1.2. Generate SSH keys
 
+The ssh key is required only if you want to create a cluster, for other operations it is not required.
 ```sh
 $ ssh-keygen
 Generating public/private rsa key pair.
@@ -133,10 +136,10 @@ Your public key has been saved in /Users/Chilcano/.ssh/id_rsa.pub.
 
 Copy the content of `/Users/Chilcano/.ssh/id_rsa.pub` into `AWS > IAM > Users > Security credentials > Upload SSH public key`.
 
-### 2.3. Create a Cluster
+### 2.2. Create a Cluster
 
 ```sh
-$ eksctl create cluster --cluster-name kube-rog-3 --nodes 3 --profile eks-usr-roger
+$ eksctl create cluster --name kube-rog-3 --nodes 3 --profile eks-usr-roger
 
 2018-07-02T11:08:35+01:00 [ℹ]  importing SSH public key "/Users/Chilcano/.ssh/id_rsa.pub" as "EKS-kube-rog-3"
 2018-07-02T11:08:36+01:00 [ℹ]  creating EKS cluster "kube-rog-3" in "us-west-2" region
@@ -162,8 +165,8 @@ $ eksctl create cluster --cluster-name kube-rog-3 --nodes 3 --profile eks-usr-ro
 
 Other clusters:
 ```sh
-$ eksctl create cluster --cluster-name kube-rog-5 --nodes 3
-$ eksctl create cluster --cluster-name kube-rog-7 --nodes 2 --region us-east-1 --auto-kubeconfig
+$ eksctl create cluster --name kube-rog-5 --nodes 3
+$ eksctl create cluster --name kube-rog-7 --nodes 2 --region us-east-1 --auto-kubeconfig
 ```
 
 The `eksctl` will create:
@@ -172,24 +175,79 @@ The `eksctl` will create:
 - The `--profile eks-usr-roger` or `export AWS_PROFILE=eks-usr-roger` can read the `credentials` file, but not the `config` file. You have to select the `region` with `--region us-east-1`.
 - With `--auto-kubeconfig` eksctl will create credentials files under `~/.kube/eksctl/clusters/` directory.
 
-### 2.4. Working with one Cluster
+### 2.3. Useful `eksctl` commands
 
-By default, the `eksctl` will create `kubeconfig` file, but if you want to get the `kubeconfig` for specific cluster already created, execute this command:
-```
-$ eksctl utils write-kubeconfig --cluster-name kube-rog-3 --kubeconfig kubeconfig.rog3
-2018-07-02T12:12:55+01:00 [ℹ]  wrote kubeconfig file "kubeconfig.rog3"
+Install `jq`, a tool to pretty-print output from commandline.
+```sh
+$ sudo apt-get -y install jq
 ```
 
-Now, load the `kubeconfig.rog3` file.
+List existing EKS clusters in AWS.
+```sh
+$ eksctl get cluster 
+$ eksctl get cluster --profile eks-usr-roger
+$ eksctl get cluster --profile eks-usr-roger --name kube-ossie
+
+$ eksctl get cluster --profile eks-usr-roger | sed -rn 's/.*Name: "(.*)",/\1/p'
+kube-rog-3
+kube-rog-5
+kube-ossie
+
+$ eksctl get cluster --profile eks-usr-roger --region us-east-1 | sed -rn 's/.*Name: "(.*)",/\1/p' 
+kube-rog-7
+```
+
+Printing colors json output.s
+```sh
+$ eksctl get cluster --profile eks-usr-roger | sed "s/.*cluster = \(.*\)/\1/g" | jq
+$ eksctl get cluster --profile eks-usr-roger --name kube-ossie | sed "s/.*cluster = \(.*\)/\1/g" | jq
+$ eksctl get cluster --profile eks-usr-roger --name kube-ossie | sed "s/.*cluster = \(.*\)/\1/g" | python -m json.tool
+```
+
+Getting kubeconfig file of a specified cluster.
+```sh
+$ eksctl utils write-kubeconfig --profile eks-usr-roger --region us-east-1 --name kube-rog-7 --kubeconfig kubeconfig.rog7
+
+$ eksctl utils write-kubeconfig -p eks-usr-roger -r us-east-1 -n kube-rog-7 --kubeconfig kubeconfig.rog7
+2018-07-26T13:43:15+01:00 [✔]  saved kubeconfig as "kubeconfig.rog7"
+``` 
+
+Deleting EKS cluster.
+```sh
+$ eksctl delete cluster -p eks-usr-roger -r us-east-1 -n kube-rog-7 --verbose 4
+...
+2018-07-26T13:46:47+01:00 [!]  as you are not using the auto-generated kubeconfig file you will need to remove the details of cluster kube-rog-7 manually
+2018-07-26T13:46:47+01:00 [✔]  all EKS cluster "kube-rog-7" resource will be deleted (if in doubt, check CloudFormation console)
+
+$ eksctl get cluster -p eks-usr-roger -r us-east-1 -n kube-rog-7 --verbose 4 | grep Status
+    Status: "DELETING",
+```
+
+### 2.4. Working only with one Cluster
+
+By default, the `eksctl` will create the `kubeconfig` file under `~/.kube/` folder, but if you want to get the `kubeconfig` for a specific cluster already created in a default region (`us-west-2`) you have to use `--kubeconfig` param.
+
+Creating `kube01` cluster.
+```sh
+$ eksctl create cluster -p eks-usr-roger -n kube01 --nodes 3
+```
+
+Getting the `kubeconfig` file.
+```sh
+$ mkdir ~/eks
+$ eksctl utils write-kubeconfig -p eks-usr-roger -n kube01 --kubeconfig ~/eks/kube01.config
+```
+
+To use `kubectl` we should load the `kubeconfig` file.
 ```sh
 $ unset KUBECONFIG
-$ export KUBECONFIG=~/eks/kubeconfig.rog3
+$ export KUBECONFIG=~/eks/kube01.config
 
 $ kubectl get nodes
 NAME                                            STATUS    ROLES     AGE       VERSION
-ip-192-168-105-229.us-west-2.compute.internal   Ready     <none>    1m        v1.10.3
-ip-192-168-149-197.us-west-2.compute.internal   Ready     <none>    1m        v1.10.3
-ip-192-168-221-35.us-west-2.compute.internal    Ready     <none>    1m        v1.10.3
+ip-192-168-147-128.us-west-2.compute.internal   Ready     <none>    11m       v1.10.3
+ip-192-168-238-176.us-west-2.compute.internal   Ready     <none>    11m       v1.10.3
+ip-192-168-70-63.us-west-2.compute.internal     Ready     <none>    11m       v1.10.3
 
 $ kubectl cluster-info
 Kubernetes master is running at https://C50Cxxx.yl4.us-west-2.eks.amazonaws.com
@@ -199,11 +257,19 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 ### 2.5. Working with multiple Clusters
 
-If you have multiples clusters `kube-rog-3`, `kube-rog-5` and `kube-rog-7`, then you can use this:
+We are going to create a 2nd cluster called `kube02` in the same default region.
+
+Get the 2nd `kubeconfig` files.
 ```sh
-$ unset KUBECONFIG; export KUBECONFIG=$KUBECONFIG:~/eks/kubeconfig.rog3:~/eks/kubeconfig.rog5:~/.kube/eksctl/clusters/kube-rog-7
+$ eksctl utils write-kubeconfig -p eks-usr-roger -n kube02 --kubeconfig ~/eks/kube02.config
 ```
 
+Load all `kubeconfig` files.
+```sh
+$ unset KUBECONFIG; export KUBECONFIG=$KUBECONFIG:~/eks/kube01.config:~/eks/kube02.config
+```
+
+Checking loaded `kubeconfig` files.
 ```sh
 $ kubectl config view
 
@@ -212,29 +278,21 @@ clusters:
 - cluster:
     certificate-authority-data: REDACTED
     server: https://0A9Dxxx.yl4.us-west-2.eks.amazonaws.com
-  name: kube-rog-3.us-west-2.eksctl.io
+  name: kube01.us-west-2.eksctl.io
 - cluster:
     certificate-authority-data: REDACTED
     server: https://C50Cxxx.yl4.us-west-2.eks.amazonaws.com
-  name: kube-rog-5.us-west-2.eksctl.io
-- cluster:
-    certificate-authority-data: REDACTED
-    server: https://AAE0xxx.yl4.us-east-1.eks.amazonaws.com
-  name: kube-rog-7.us-east-1.eksctl.io
+  name: kube02.us-west-2.eksctl.io
 contexts:
 - context:
-    cluster: kube-rog-3.us-west-2.eksctl.io
-    user: usr-123@kube-rog-3.us-west-2.eksctl.io
-  name: usr-123@kube-rog-3.us-west-2.eksctl.io
+    cluster: kube01.us-west-2.eksctl.io
+    user: usr-123@kube01.us-west-2.eksctl.io
+  name: usr-123@kube01.us-west-2.eksctl.io
 - context:
-    cluster: kube-rog-5.us-west-2.eksctl.io
-    user: usr-123@kube-rog-5.us-west-2.eksctl.io
-  name: usr-123@kube-rog-5.us-west-2.eksctl.io
-- context:
-    cluster: kube-rog-7.us-east-1.eksctl.io
-    user: usr-123@kube-rog-7.us-east-1.eksctl.io
-  name: usr-123@kube-rog-7.us-east-1.eksctl.io
-current-context: usr-123@kube-rog-5.us-west-2.eksctl.io
+    cluster: kube02.us-west-2.eksctl.io
+    user: usr-123@kube02.us-west-2.eksctl.io
+  name: usr-123@kube02.us-west-2.eksctl.io
+current-context: usr-123@kube02.us-west-2.eksctl.io
 kind: Config
 preferences: {}
 users:
@@ -245,9 +303,11 @@ users:
       args:
       - token
       - -i
-      - kube-rog-3
+      - kube01
       command: heptio-authenticator-aws
-      env: null
+      env:
+      - name: AWS_PROFILE
+        value: eks-usr-roger
 - name: usr-123@kube-rog-5.us-west-2.eksctl.io
   user:
     exec:
@@ -255,49 +315,40 @@ users:
       args:
       - token
       - -i
-      - kube-rog-5
+      - kube02
       command: heptio-authenticator-aws
-      env: null
-- name: usr-123@kube-rog-7.us-east-1.eksctl.io
-  user:
-    exec:
-      apiVersion: client.authentication.k8s.io/v1alpha1
-      args:
-      - token
-      - -i
-      - kube-rog-7
-      command: heptio-authenticator-aws
-      env: null
+      env: 
+      - name: AWS_PROFILE
+        value: eks-usr-roger
 ```
 
-To switch between different clusters, to use the `use-context` param.
+To use the `use-context` param to switch between different clusters.
+Switching to 1st cluster.
 ```sh
-$ kubectl config use-context usr-123@kube-rog-3.us-west-2.eksctl.io
-Switched to context "usr-123@kube-rog-3.us-west-2.eksctl.io".
+$ kubectl config use-context usr-123@kube01.us-west-2.eksctl.io
+Switched to context "usr-123@kube01.us-west-2.eksctl.io".
 
 $ kubectl get nodes
 NAME                                            STATUS    ROLES     AGE       VERSION
-ip-192-168-123-100.us-west-2.compute.internal   Ready     <none>    1h        v1.10.3
-ip-192-168-171-21.us-west-2.compute.internal    Ready     <none>    1h        v1.10.3
-ip-192-168-245-243.us-west-2.compute.internal   Ready     <none>    1h        v1.10.3
+ip-192-168-147-128.us-west-2.compute.internal   Ready     <none>    38m       v1.10.3
+ip-192-168-238-176.us-west-2.compute.internal   Ready     <none>    38m       v1.10.3
+ip-192-168-70-63.us-west-2.compute.internal     Ready     <none>    38m       v1.10.3
+```
 
-$ kubectl config use-context usr-123@kube-rog-5.us-west-2.eksctl.io
+Switching to 2nd cluster.
+```sh
+$ kubectl config use-context usr-123@kube02.us-west-2.eksctl.io
 Switched to context "usr-123@kube-rog-5.us-west-2.eksctl.io".
 
 $ kubectl get nodes
 NAME                                            STATUS    ROLES     AGE       VERSION
-ip-192-168-105-229.us-west-2.compute.internal   Ready     <none>    24m       v1.10.3
-ip-192-168-149-197.us-west-2.compute.internal   Ready     <none>    24m       v1.10.3
-ip-192-168-221-35.us-west-2.compute.internal    Ready     <none>    24m       v1.10.3
+ip-192-168-140-164.us-west-2.compute.internal   Ready     <none>    10m       v1.10.3
+ip-192-168-220-10.us-west-2.compute.internal    Ready     <none>    10m       v1.10.3
+ip-192-168-82-55.us-west-2.compute.internal     Ready     <none>    10m       v1.10.3
+```
 
-$ kubectl config use-context usr-123@kube-rog-7.us-east-1.eksctl.io
-Switched to context "usr-123@kube-rog-7.us-east-1.eksctl.io".
-
-$ kubectl get nodes
-NAME                              STATUS    ROLES     AGE       VERSION
-ip-192-168-107-81.ec2.internal    Ready     <none>    22h       v1.10.3
-ip-192-168-131-235.ec2.internal   Ready     <none>    22h       v1.10.3
-
+Getting further information.
+```sh
 $ kubectl get all --all-namespaces
 NAMESPACE     NAME                            READY     STATUS    RESTARTS   AGE
 kube-system   pod/aws-node-f97p7              1/1       Running   1          23h
@@ -326,4 +377,29 @@ Further `eksctl` commands:
 
 ## 3. Working with the Cluster
 
-### 3.1.
+### 3.1. Deploying Weave Scope
+
+We are going to deploy Weave Scope in the cluster and exposing it by using `ClusterIP`.
+```sh
+$ kubectl apply -f "https://cloud.weave.works/k8s/scope.yaml?k8s-version=$(kubectl version | base64 | tr -d '\n')" 
+```
+
+Checking installation.
+```sh
+$ kubectl get pod,svc -n weave
+NAME                                   READY     STATUS    RESTARTS   AGE
+pod/weave-scope-agent-69887            1/1       Running   0          1m
+pod/weave-scope-agent-6shr8            1/1       Running   0          1m
+pod/weave-scope-agent-flfzt            1/1       Running   0          1m
+pod/weave-scope-app-7f5f76bf89-wt785   1/1       Running   0          1m
+
+NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/weave-scope-app   ClusterIP   10.100.63.150   <none>        80/TCP    1m
+```
+
+Getting access to Weave Scope.
+```sh
+$ kubectl port-forward -n weave "$(kubectl get pod -n weave --selector=weave-scope-component=app -o jsonpath='{.items..metadata.name}')" 4040
+```
+
+Now open your this URL `http://localhost:4040` in your browser.
