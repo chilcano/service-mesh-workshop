@@ -197,7 +197,7 @@ $ eksctl get cluster --profile eks-usr-roger --region us-east-1 | sed -rn 's/.*N
 kube-rog-7
 ```
 
-Printing colors json output.s
+Printing colors json output.
 ```sh
 $ eksctl get cluster --profile eks-usr-roger | sed "s/.*cluster = \(.*\)/\1/g" | jq
 $ eksctl get cluster --profile eks-usr-roger --name kube-ossie | sed "s/.*cluster = \(.*\)/\1/g" | jq
@@ -255,6 +255,15 @@ Kubernetes master is running at https://C50Cxxx.yl4.us-west-2.eks.amazonaws.com
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
+Checking the status.
+```sh
+$ kubectl get componentstatus
+NAME                 STATUS    MESSAGE              ERROR
+controller-manager   Healthy   ok                   
+scheduler            Healthy   ok                   
+etcd-0               Healthy   {"health": "true"} 
+```
+
 ### 2.5. Working with multiple Clusters
 
 We are going to create a 2nd cluster called `kube02` in the same default region.
@@ -267,6 +276,12 @@ $ eksctl utils write-kubeconfig -p eks-usr-roger -n kube02 --kubeconfig ~/eks/ku
 Load all `kubeconfig` files.
 ```sh
 $ unset KUBECONFIG; export KUBECONFIG=$KUBECONFIG:~/eks/kube01.config:~/eks/kube02.config
+```
+
+Or making it permanent.
+```sh
+$ echo 'export KUBECONFIG=$KUBECONFIG:~/eks/kube01.config:~/eks/kube02.config' >> ~/.bash_profile
+$ source ~/.bash_profile
 ```
 
 Checking loaded `kubeconfig` files.
@@ -377,7 +392,7 @@ Further `eksctl` commands:
 
 ## 3. Working with the Cluster
 
-### 3.1. Deploying Weave Scope
+### 3.1. Deploying Weave Scope (a Kubernetes Control Plane)
 
 We are going to deploy Weave Scope in the cluster and exposing it by using `ClusterIP`.
 ```sh
@@ -403,3 +418,93 @@ $ kubectl port-forward -n weave "$(kubectl get pod -n weave --selector=weave-sco
 ```
 
 Now open your this URL `http://localhost:4040` in your browser.
+
+## 4. Implementing a Secure Service Mesh (Secure Data Plane and Control Plane)
+
+We are going to implement a Secure Data Plane by using Envoy Proxy (https://www.envoyproxy.io) sitting in front of each App Container and being deployed as a Sidecar Container. We can do this process if we have few App Containers, but if we have several App Containers continuously retiring and redeploying we should use a framework like Istio (https://istio.io).
+
+Additionally, Istio provides extra tools to manage all ecosystem, new primitives and the security of course:
+* Registry and Discovery
+* L7 Traffic Management (L7 Segmentation, Ingress, Egress, Throttling, etc.)
+* Observability (Metrics, Logs, Stats, Tracing, Correlation, ....) in real-time.
+* TLS everywhere
+* Service Identity (aka Container ID) based on `SPIFFE` (https://spiffe.io).
+* Capability to extend Security (without a Sidecar, we can't implement end-to-end security):
+  - L4/L7 Security (Sidecar works as a Firewall running in a Container)
+  - Identity-based Security (SPIFFE and Sidecar)
+  - IDS (Intrusion Detection System) in real-time (Sidecar detects anomalous traffic)
+  - Etc.
+
+More information about Sidecar Pattern:
+- Sidecar Patterns @ Microsoft (https://docs.microsoft.com/en-us/azure/architecture/patterns/sidecar)
+- Sidecar, Adapter and Abassador Patterns @ Google (https://kubernetes.io/blog/2015/06/the-distributed-system-toolkit-patterns)
+- See GIS SecEng Document Repository.
+
+### 4.1. Installing Istio
+
+We are going to use `Helm` (The package manager for Kubernetes - https://helm.sh), a supported CNCF (https://www.cncf.io/blog/2018/06/01/cncf-to-host-helm) tool to deliver/install quickly (in seconds) extra components or simply our App Containers on the Kubernetes Cluster.
+
+Installing `Helm` in your host.
+```sh
+$ curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+```
+
+Installing `Tiller` (It's the portion of `Helm` running on K8s).
+```sh
+$ helm init --service-account tiller
+```
+
+Download Istio.
+```sh
+$ curl -L https://git.io/getLatestIstio | sh -
+$ cd istio-0.8.0
+```
+
+Patch `istioctl`. The `istioctl` doesn't work with EKS properly, especifically with `heptio-authenticator-aws`, anyway this patched `istioctl` provided for Istio will work.(Ref. https://github.com/istio/istio/issues/5327#issuecomment-397845262). Then, let's download it (`istioctl_linux` - https://ibm.box.com/s/d0yg8m6ee4g17avl8g4ku2my0y96rzjj) from the browser, make it executable and add it in the `$PATH`.
+```sh
+$ mv bin/istioctl bin/istio.backup
+$ cp ~/Downloads/istioctl_linux bin/istioctl 
+$ chmod +x bin/istioctl
+
+$ echo 'export PATH=$PATH:~/eks/istio-0.8.0/bin' >> ~/.bash_profile
+$ source ~/.bash_profile
+
+$ istioctl version
+Version: 919062a26aa78db9946d647be6f064b1c86b4522-dirty
+GitRevision: 919062a26aa78db9946d647be6f064b1c86b4522-dirty
+User: vagrant@istio
+Hub: docker.io/istio
+GolangVersion: go1.10.2
+BuildStatus: Modified
+```
+
+Create the K8s service account that `Helm` needs to perform the deployment of `Istio`.
+```sh
+$ kubectl create -f install/kubernetes/helm/helm-service-account.yaml
+```
+
+Install `Istio` with automatic sidecar injection in the namespace `istio-system`.
+```sh
+$ helm install install/kubernetes/helm/istio --name istio --namespace istio-system
+```
+
+Checking Istio installation.
+```sh
+$ kubectl get pod -n istio-system
+NAME                                       READY     STATUS      RESTARTS   AGE
+istio-citadel-7bdc7775c7-lh2h8             1/1       Running     0          11m
+istio-egressgateway-795fc9b47-w9s4z        1/1       Running     0          11m
+istio-ingress-84659cf44c-69rg2             1/1       Running     0          11m
+istio-ingressgateway-7d89dbf85f-kw4bb      1/1       Running     0          11m
+istio-mixer-post-install-wtthx             0/1       Completed   0          10m
+istio-pilot-66f4dd866c-6j2vr               2/2       Running     0          11m
+istio-policy-76c8896799-6d5w4              2/2       Running     0          11m
+istio-sidecar-injector-645c89bc64-jzrks    1/1       Running     0          11m
+istio-statsd-prom-bridge-949999c4c-rlzrr   1/1       Running     0          11m
+istio-telemetry-6554768879-fp9cv           2/2       Running     0          11m
+prometheus-86cb6dd77c-458lh                1/1       Running     0          11m
+```
+
+### 4.2. Deploy Istio Bookinfo App Demo
+
+here
