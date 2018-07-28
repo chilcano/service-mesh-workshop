@@ -440,27 +440,31 @@ More information about Sidecar Pattern:
 - Sidecar, Adapter and Abassador Patterns @ Google (https://kubernetes.io/blog/2015/06/the-distributed-system-toolkit-patterns)
 - See GIS SecEng Document Repository.
 
-### 4.1. Installing Istio
+### 4.1. Installing Istio using Helm
 
 We are going to use `Helm` (The package manager for Kubernetes - https://helm.sh), a supported CNCF (https://www.cncf.io/blog/2018/06/01/cncf-to-host-helm) tool to deliver/install quickly (in seconds) extra components or simply our App Containers on the Kubernetes Cluster.
 
-Installing `Helm` in your host.
+Install `Helm` in your host.
 ```sh
 $ curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+$ helm version
+$ helm version --short
+Client: v2.9.1+g20adb27
+Server: v2.9.1+g20adb27
 ```
 
-Installing `Tiller` (It's the portion of `Helm` running on K8s).
+Install `Tiller` (It's the portion of `Helm` running on K8s).
 ```sh
 $ helm init --service-account tiller
 ```
 
-Download Istio.
+Download `Istio`.
 ```sh
 $ curl -L https://git.io/getLatestIstio | sh -
 $ cd istio-0.8.0
 ```
 
-Patch `istioctl`. The `istioctl` doesn't work with EKS properly, especifically with `heptio-authenticator-aws`, anyway this patched `istioctl` provided for Istio will work.(Ref. https://github.com/istio/istio/issues/5327#issuecomment-397845262). Then, let's download it (`istioctl_linux` - https://ibm.box.com/s/d0yg8m6ee4g17avl8g4ku2my0y96rzjj) from the browser, make it executable and add it in the `$PATH`.
+Patch `istioctl`. The `istioctl` doesn't work with EKS properly, especifically with `heptio-authenticator-aws`, anyway this patched `istioctl` provided for Istio will work (Ref. https://github.com/istio/istio/issues/5327#issuecomment-397845262). Then, let's download it (`istioctl_linux` - https://ibm.box.com/s/d0yg8m6ee4g17avl8g4ku2my0y96rzjj) from the browser, make it executable and add it in the `PATH`.
 ```sh
 $ mv bin/istioctl bin/istio.backup
 $ cp ~/Downloads/istioctl_linux bin/istioctl 
@@ -483,12 +487,12 @@ Create the K8s service account that `Helm` needs to perform the deployment of `I
 $ kubectl create -f install/kubernetes/helm/helm-service-account.yaml
 ```
 
-Install `Istio` with automatic sidecar injection in the namespace `istio-system`.
+Install `Istio` in the namespace `istio-system`.
 ```sh
 $ helm install install/kubernetes/helm/istio --name istio --namespace istio-system
 ```
 
-Checking Istio installation.
+Checking Istio Pods.
 ```sh
 $ kubectl get pod -n istio-system
 NAME                                       READY     STATUS      RESTARTS   AGE
@@ -505,6 +509,230 @@ istio-telemetry-6554768879-fp9cv           2/2       Running     0          11m
 prometheus-86cb6dd77c-458lh                1/1       Running     0          11m
 ```
 
-### 4.2. Deploy Istio Bookinfo App Demo
+Checking Istio Services (aka `vip`).
+```sh
+$ kubectl get svc -n istio-system
 
-here
+NAME                       TYPE           CLUSTER-IP       EXTERNAL-IP                       PORT(S)                                                               AGE
+istio-citadel              ClusterIP      10.100.144.85    <none>                            8060/TCP,9093/TCP                                                     8h
+istio-egressgateway        ClusterIP      10.100.173.86    <none>                            80/TCP,443/TCP                                                        8h
+istio-ingress              LoadBalancer   10.100.188.230   xyz.us-west-2.elb.amazonaws.com   80:32000/TCP,443:31045/TCP                                            8h
+istio-ingressgateway       LoadBalancer   10.100.13.97     pqr.us-west-2.elb.amazonaws.com   80:31380/TCP,443:31390/TCP,31400:31400/TCP                            8h
+istio-pilot                ClusterIP      10.100.114.248   <none>                            15003/TCP,15005/TCP,15007/TCP,15010/TCP,15011/TCP,8080/TCP,9093/TCP   8h
+istio-policy               ClusterIP      10.100.24.106    <none>                            9091/TCP,15004/TCP,9093/TCP                                           8h
+istio-sidecar-injector     ClusterIP      10.100.205.155   <none>                            443/TCP                                                               8h
+istio-statsd-prom-bridge   ClusterIP      10.100.43.9      <none>                            9102/TCP,9125/UDP                                                     8h
+istio-telemetry            ClusterIP      10.100.141.0     <none>                            9091/TCP,15004/TCP,9093/TCP,42422/TCP                                 8h
+prometheus                 ClusterIP      10.100.45.68     <none>                            9090/TCP                                                              8h
+
+```
+
+In this point we are able to deploy any App Containers on EKS Cluster, specifically on our Secure Data Plane based on Envoy Proxy deployed as Sidecar.
+
+### 4.2. Unistalling Istio using Helm
+
+```sh
+$ helm delete --purge istio
+```
+
+If your `Helm` version is less than `2.9.0`, then you need to manually cleanup extra job resource before redeploy new version of Istio chart:
+```sh
+$ kubectl -n istio-system delete job --all
+```
+
+### 4.3. Customized installation of Istio using Helm
+
+The Helm chart ships with reasonable defaults. There may be circumstances in which defaults require overrides. To override Helm values, use `--set key=value `argument during the `helm install` command. Multiple `--set` operations may be used in the same Helm operation.
+
+Istio has a configuration by default, for example:
+- `global.proxy.image`: `proxyv2`
+- `global.controlPlaneSecurityEnabled`: `false`
+- `global.mtls.enabled`: `false`
+- `global.rbacEnabled`: `true`
+
+The Helm chart also offers significant customization options per individual service. Customize these per-service options. The per-service options are exposed via the `values.yaml` file.
+
+Now, if we want to enable `MTLS` (Mutual TLS Authentication) between services and `MTLS` in Istio Control Plane, we should install Istio as follow:
+```sh
+$ helm install install/kubernetes/helm/istio --name istio --namespace istio-system --set global.mtls.enabled=true global.controlPlaneSecurityEnabled=true
+```
+
+For more `Helm` default parameters here: https://istio.io/docs/setup/kubernetes/helm-install
+
+
+### 4.4. Deploy Istio BookInfo App Demo
+
+Istio brings a sample application (multiple APIs and Microservices) called `BookInfo` to show us all capabilities of Istio. To understand what `BookInfo` does, please check out this: https://istio.io/docs/guides/bookinfo
+
+Install `BookInfo` demo in the namespace `bookinfo`. We should create the namespace `bookinfo` for our App and label it with `istio-injection=enabled` before deploying the `BookInfo` App. Behind of scenes Istio will inject automatically Envoy Proxy as Sidecar Container in each Pod.
+
+Create the namespace `bookinfo`.
+```sh
+$ kubectl create namespace bookinfo
+```
+
+Verify that the kube-apiserver process has the `admission-control` flag set.
+```sh
+$ kubectl api-versions | grep admissionregistration
+admissionregistration.k8s.io/v1beta1
+```
+
+Label the namespace `bookinfo` with `istio-injection=enabled`.
+```sh
+$ kubectl label namespace bookinfo istio-injection=enabled
+namespace/bookinfo labeled
+```
+
+Check if label was applied.
+```sh
+$ kubectl get namespace -L istio-injection
+NAME           STATUS    AGE       ISTIO-INJECTION
+bookinfo       Active    47m       enabled
+default        Active    1d        
+istio-system   Active    11h       
+kube-public    Active    1d        
+kube-system    Active    1d        
+weave          Active    1d        
+```
+
+Once done, deploy the `BookInfo` App.
+```sh
+$ kubectl apply -f samples/bookinfo/kube/bookinfo.yaml -n bookinfo
+```
+
+__Observation:__
+- Unfortunately, Istio's automatic sidecar injection not working with EKS.
+- References:
+  * https://forums.aws.amazon.com/thread.jspa?threadID=285696
+  * https://github.com/istio/old_issues_repo/issues/271 
+- Any App should be deployed without Istio automatic sidecar injection, it should be deployed by injection sidecar manually with `istioctl kube-inject` command.
+
+__Manual sidecar injection:__
+
+Remove the Label that the namespace `bookinfo` has `istio-injection=enabled`.
+```sh
+$ kubectl label namespace bookinfo istio-injection=disabled --overwrite
+namespace/bookinfo labeled
+
+$ kubectl get namespace -L istio-injection
+NAME           STATUS    AGE       ISTIO-INJECTION
+bookinfo       Active    47m       disabled
+default        Active    1d        
+istio-system   Active    11h       
+kube-public    Active    1d        
+kube-system    Active    1d        
+weave          Active    1d  
+```
+
+Redeploy the sidecar injected in the `BookInfo` App.
+```sh
+$ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml) -n bookinfo
+```
+
+Check the resources created.
+```sh
+$ kubectl get all -n bookinfo
+
+NAME                                  READY     STATUS    RESTARTS   AGE
+pod/details-v1-7f4b9b7775-4h4hw       2/2       Running   0          45s
+pod/productpage-v1-586c4486b7-vmw5p   2/2       Running   0          39s
+pod/ratings-v1-7bc49f5779-lrx9s       2/2       Running   0          44s
+pod/reviews-v1-b44bd5769-cpl8f        2/2       Running   0          43s
+pod/reviews-v2-6d87c8c5-dkgfb         2/2       Running   0          42s
+pod/reviews-v3-79fb5c99d5-hvzvf       2/2       Running   0          41s
+
+NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/details       ClusterIP   10.100.109.248   <none>        9080/TCP   46s
+service/productpage   ClusterIP   10.100.76.79     <none>        9080/TCP   40s
+service/ratings       ClusterIP   10.100.249.240   <none>        9080/TCP   45s
+service/reviews       ClusterIP   10.100.24.187    <none>        9080/TCP   43s
+
+NAME                             DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/details-v1       1         1         1            1           46s
+deployment.apps/productpage-v1   1         1         1            1           40s
+deployment.apps/ratings-v1       1         1         1            1           45s
+deployment.apps/reviews-v1       1         1         1            1           44s
+deployment.apps/reviews-v2       1         1         1            1           43s
+deployment.apps/reviews-v3       1         1         1            1           42s
+
+NAME                                        DESIRED   CURRENT   READY     AGE
+replicaset.apps/details-v1-7f4b9b7775       1         1         1         46s
+replicaset.apps/productpage-v1-586c4486b7   1         1         1         40s
+replicaset.apps/ratings-v1-7bc49f5779       1         1         1         45s
+replicaset.apps/reviews-v1-b44bd5769        1         1         1         44s
+replicaset.apps/reviews-v2-6d87c8c5         1         1         1         43s
+replicaset.apps/reviews-v3-79fb5c99d5       1         1         1         42s
+```
+
+Since that all K8s services (aka `vip`) are of type `ClusterIP`, that means that the BookInfo App isn't accesible from Internet, and the uniqe way to get access to the application is through of Istio Ingres Gateway Pod (`istio-ingressgateway-7d89dbf85f-kw4bb`) and its Serrvice (`istio-ingressgateway`) wich is of type `LoadBalancer`.
+
+In conclusion, if we want to call an API or Microservice running in a Secure Data Plane (Secure Service Mesh) based on Istio and Envoy Proxy, we should identify the `fqdn` of the Istio Ingres Gateway Service (`istio-ingressgateway`) and perform the request through of it. But as we are using a Secure Data Plane (Secure Service Mesh), we need to create a new route (`kind: VirtualService`) to the required API or Microservice. Below the commands:
+
+The route (`kind: VirtualService`) for the BookInfo App.
+```sh
+$ cat samples/bookinfo/routing/bookinfo-gateway.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: bookinfo-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: bookinfo
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - bookinfo-gateway
+  http:
+  - match:
+    - uri:
+        exact: /productpage
+    - uri:
+        exact: /login
+    - uri:
+        exact: /logout
+    - uri:
+        prefix: /api/v1/products
+    route:
+    - destination:
+        host: productpage
+        port:
+          number: 9080
+```
+
+Creating the specified route in the namespace `bookinfo`.
+```
+$ istioctl create -f samples/bookinfo/routing/bookinfo-gateway.yaml -n bookinfo
+
+Created config gateway/bookinfo/bookinfo-gateway at revision 206117
+Created config virtual-service/bookinfo/bookinfo at revision 206122
+```
+
+Getting the `fqdn` of Istio Ingress Gateway Service (it should be of type `LoadBalancer`).
+```sh
+$ kubectl get svc istio-ingressgateway -n istio-system
+
+NAME                       TYPE           CLUSTER-IP       EXTERNAL-IP                       PORT(S)                                        AGE
+istio-ingressgateway       LoadBalancer   10.100.13.97     pqr.us-west-2.elb.amazonaws.com   80:31380/TCP,443:31390/TCP,31400:31400/TCP     8h
+```
+
+Then, finally we should open this URL `http://jks.us-west-2.elb.amazonaws.com:80/productpage` in our browser.
+
+__Important:__
+If you are not going to use the EKS anymore, we recommend remove the Istio route for `BookInfo` App:
+```sh
+$ istioctl delete -f samples/bookinfo/routing/bookinfo-gateway.yaml -n bookinfo
+```
