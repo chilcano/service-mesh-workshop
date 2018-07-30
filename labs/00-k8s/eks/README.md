@@ -794,3 +794,27 @@ If you are not going to use the EKS anymore, we recommend remove the Istio route
 ```sh
 $ istioctl delete -f samples/bookinfo/routing/bookinfo-gateway.yaml -n bookinfo
 ```
+
+## 5. RBAC
+
+## 6. Service Identity
+
+### 6.1. SPIFFE
+
+### 6.2. PKI, TLS/MTLS for Container-based Distributed System
+
+### 6.3. Secrets Management for Container-based Distributed System
+
+## 7. CI/CD, DevOps, SecDevOps
+
+### 7.1. Considerations
+
+- Container Deployment Patterns: Sidecar, Adapter, Ambassador, Init, etc.
+- Deployment Workflow Engine: Jenkins X and Scaffold
+- SecDevOps: Continuous Security and Secrity Monitoring
+
+### 7.2. CI/CD Demo
+
+## 8. Observability and Security Monitoring in real-time
+
+## 9. Conclusions
