@@ -715,7 +715,7 @@ replicaset.apps/reviews-v2-6d87c8c5         1         1         1         43s
 replicaset.apps/reviews-v3-79fb5c99d5       1         1         1         42s
 ```
 
-Since that all K8s services (aka `vip`) are of type `ClusterIP`, that means that the BookInfo App isn't accesible from Internet, and the uniqe way to get access to the application is through of Istio Ingres Gateway Pod (`istio-ingressgateway-7d89dbf85f-kw4bb`) and its Serrvice (`istio-ingressgateway`) wich is of type `LoadBalancer`.
+Since that all K8s services (aka `vip`) are of type `ClusterIP`, that means that the BookInfo App isn't accesible from Internet, and the uniqe way to get access to the application is through of Istio Ingres Gateway Pod (`istio-ingressgateway-7d89dbf85f-kw4bb`) and its Service (`istio-ingressgateway`) wich is of type `LoadBalancer`.
 
 In conclusion, if we want to call an API or Microservice running in a Secure Data Plane (Secure Service Mesh) based on Istio and Envoy Proxy, we should identify the `fqdn` of the Istio Ingres Gateway Service (`istio-ingressgateway`) and perform the request through of it. But as we are using a Secure Data Plane (Secure Service Mesh), we need to create a new route (`kind: VirtualService`) to the required API or Microservice. Below the commands:
 
@@ -782,7 +782,14 @@ istio-ingressgateway       LoadBalancer   10.100.13.97     pqr.us-west-2.elb.ama
 
 Then, finally we should open this URL `http://jks.us-west-2.elb.amazonaws.com:80/productpage` in our browser.
 
+
+![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.svg)
+
+_Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
+
+
 __Important:__
+
 If you are not going to use the EKS anymore, we recommend remove the Istio route for `BookInfo` App:
 ```sh
 $ istioctl delete -f samples/bookinfo/routing/bookinfo-gateway.yaml -n bookinfo
