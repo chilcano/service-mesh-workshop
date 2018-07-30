@@ -555,7 +555,7 @@ plane**.
 
 The following diagram shows the different components that make up each plane:
 
-![The overall architecture of an Istio-based application.](./istio-arch-components.svg){:ratio="56.25%" width="80%"}
+![The overall architecture of an Istio-based application.](./istio-arch-components.svg)
 
 ### 4.3. Unistalling Istio using Helm
 
@@ -591,6 +591,26 @@ For more `Helm` default parameters here: https://istio.io/docs/setup/kubernetes/
 ### 4.5. Deploy Istio BookInfo App Demo
 
 Istio brings a sample application (multiple APIs and Microservices) called `BookInfo` to show us all capabilities of Istio. To understand what `BookInfo` does, please check out this: https://istio.io/docs/guides/bookinfo
+
+The Bookinfo application is broken into four separate microservices:
+
+* `productpage`. The `productpage` microservice calls the `details` and `reviews` microservices to populate the page.
+* `details`. The `details` microservice contains book information.
+* `reviews`. The `reviews` microservice contains book reviews. It also calls the `ratings` microservice.
+* `ratings`. The `ratings` microservice contains book ranking information that accompanies a book review.
+
+There are 3 versions of the `reviews` microservice:
+
+* Version v1 doesn't call the `ratings` service.
+* Version v2 calls the `ratings` service, and displays each rating as 1 to 5 black stars.
+* Version v3 calls the `ratings` service, and displays each rating as 1 to 5 red stars.
+
+The end-to-end architecture of the application is shown below.
+
+![Bookinfo Application without Istio.](./bookinfo-arch-no-istio.svg)
+
+![Bookinfo Application with Istio (Envoy Proxy as Sidecar).](./bookinfo-arch-with-istio.svg)
+
 
 Install `BookInfo` demo in the namespace `bookinfo`. We should create the namespace `bookinfo` for our App and label it with `istio-injection=enabled` before deploying the `BookInfo` App. Behind of scenes Istio will inject automatically Envoy Proxy as Sidecar Container in each Pod.
 
