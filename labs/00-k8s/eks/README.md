@@ -555,12 +555,12 @@ plane**.
 
 The following diagram shows the different components that make up each plane:
 
-< image width="80%" ratio="56.25%"
+<image width="80%" ratio="56.25%"
     link="./istio-arch-components.svg"
     alt="The overall architecture of an Istio-based application."
-    caption="Istio Architecture"
-    >
+    caption="Istio Architecture">
 
+![The overall architecture of an Istio-based application.](/./istio-arch-components.svg){:ratio="56.25%" width="80%"}
 
 ### 4.3. Unistalling Istio using Helm
 
