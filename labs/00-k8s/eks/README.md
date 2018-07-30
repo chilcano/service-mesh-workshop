@@ -780,10 +780,10 @@ NAME                       TYPE           CLUSTER-IP       EXTERNAL-IP          
 istio-ingressgateway       LoadBalancer   10.100.13.97     pqr.us-west-2.elb.amazonaws.com   80:31380/TCP,443:31390/TCP,31400:31400/TCP     8h
 ```
 
-Then, finally we should open this URL `http://jks.us-west-2.elb.amazonaws.com:80/productpage` in our browser.
+Then, finally we should open this URL `http://pqr.us-west-2.elb.amazonaws.com:80/productpage` in our browser.
 
 
-![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.svg)
+![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.png)
 
 _Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
 
