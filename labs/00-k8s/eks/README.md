@@ -608,9 +608,11 @@ There are 3 versions of the `reviews` microservice:
 The end-to-end architecture of the application is shown below.
 
 ![Bookinfo Application without Istio.](./bookinfo-arch-no-istio.svg)
+
 _Bookinfo Application without Istio._
 
 ![Bookinfo Application with Istio (Envoy Proxy as Sidecar).](./bookinfo-arch-with-istio.svg)
+
 _Bookinfo Application with Istio (Envoy Proxy as Sidecar)._
 
 Install `BookInfo` demo in the namespace `bookinfo`. We should create the namespace `bookinfo` for our App and label it with `istio-injection=enabled` before deploying the `BookInfo` App. Behind of scenes Istio will inject automatically Envoy Proxy as Sidecar Container in each Pod.
