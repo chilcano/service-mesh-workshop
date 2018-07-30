@@ -421,9 +421,16 @@ Now open your this URL `http://localhost:4040` in your browser.
 
 ## 4. Implementing a Secure Service Mesh (Secure Data Plane and Control Plane)
 
-We are going to implement a Secure Data Plane by using Envoy Proxy (https://www.envoyproxy.io) sitting in front of each App Container and being deployed as a Sidecar Container. We can do this process if we have few App Containers, but if we have several App Containers continuously retiring and redeploying we should use a framework like Istio (https://istio.io).
+We are going to implement a Secure Data Plane by using Envoy Proxy (https://www.envoyproxy.io) sitting in front of each App Container and being deployed as a Sidecar Container. We can do this process if we have few App Containers, but if we have several App Containers continuously retiring and redeploying them we should use a framework like Istio (https://istio.io).
 
-Additionally, Istio provides extra tools to manage all ecosystem, new primitives and the security of course:
+Istio provides extra capabilities to manage all ecosystem, the API/Microservices based on Containers primitives and the security of course.
+In other words, Istio provides:
+- Uniform Observability
+- Operational Agility
+- Policy Driven Security
+
+With Istio we can implement:
+
 * Registry and Discovery
 * L7 Traffic Management (L7 Segmentation, Ingress, Egress, Throttling, etc.)
 * Observability (Metrics, Logs, Stats, Tracing, Correlation, ....) in real-time.
@@ -438,6 +445,7 @@ Additionally, Istio provides extra tools to manage all ecosystem, new primitives
 More information about Sidecar Pattern:
 - Sidecar Patterns @ Microsoft (https://docs.microsoft.com/en-us/azure/architecture/patterns/sidecar)
 - Sidecar, Adapter and Abassador Patterns @ Google (https://kubernetes.io/blog/2015/06/the-distributed-system-toolkit-patterns)
+- Introduction to Service Management with Istio Service Mesh (Cloud Next '18) (https://www.youtube.com/watch?v=wCJrdKdD6UM): we can see the relationship between Service Management (Istio) and API Management (Apigee)
 - See GIS SecEng Document Repository.
 
 ### 4.1. Installing Istio using Helm
@@ -529,7 +537,32 @@ prometheus                 ClusterIP      10.100.45.68     <none>               
 
 In this point we are able to deploy any App Containers on EKS Cluster, specifically on our Secure Data Plane based on Envoy Proxy deployed as Sidecar.
 
-### 4.2. Unistalling Istio using Helm
+
+### 4.2. Exploring installed Istio components
+
+An Istio service mesh is logically split into a **data plane** and a **control
+plane**.
+
+* The **data plane** is composed of a set of intelligent proxies
+  ([Envoy](https://www.envoyproxy.io/)) deployed as sidecars. These proxies
+  mediate and control all network communication between microservices along
+  with [Mixer](/docs/concepts/policies-and-telemetry/), a general-purpose
+  policy and telemetry hub.
+
+* The **control plane** manages and configures the proxies to route traffic.
+  Additionally, the control plane configures Mixers to enforce policies and
+  collect telemetry.
+
+The following diagram shows the different components that make up each plane:
+
+< image width="80%" ratio="56.25%"
+    link="./istio-arch-components.svg"
+    alt="The overall architecture of an Istio-based application."
+    caption="Istio Architecture"
+    >
+
+
+### 4.3. Unistalling Istio using Helm
 
 ```sh
 $ helm delete --purge istio
@@ -540,7 +573,7 @@ If your `Helm` version is less than `2.9.0`, then you need to manually cleanup e
 $ kubectl -n istio-system delete job --all
 ```
 
-### 4.3. Customized installation of Istio using Helm
+### 4.4. Customized installation of Istio using Helm
 
 The Helm chart ships with reasonable defaults. There may be circumstances in which defaults require overrides. To override Helm values, use `--set key=value `argument during the `helm install` command. Multiple `--set` operations may be used in the same Helm operation.
 
@@ -560,7 +593,7 @@ $ helm install install/kubernetes/helm/istio --name istio --namespace istio-syst
 For more `Helm` default parameters here: https://istio.io/docs/setup/kubernetes/helm-install
 
 
-### 4.4. Deploy Istio BookInfo App Demo
+### 4.5. Deploy Istio BookInfo App Demo
 
 Istio brings a sample application (multiple APIs and Microservices) called `BookInfo` to show us all capabilities of Istio. To understand what `BookInfo` does, please check out this: https://istio.io/docs/guides/bookinfo
 
