@@ -828,9 +828,9 @@ __References:__
 
 ### 6.1. SPIFFE
 
-### 6.2. PKI, TLS/MTLS for Container-based Distributed System
+### 6.2. PKI, TLS/MTLS everywhere
 
-### 6.3. Secrets Management for Container-based Distributed System
+### 6.3. Secrets Management 
 
 ## 7. CI/CD, DevOps, SecDevOps
 
