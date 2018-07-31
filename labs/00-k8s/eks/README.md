@@ -803,7 +803,7 @@ $ istioctl delete -f samples/bookinfo/routing/bookinfo-gateway.yaml -n bookinfo
 - Normal Users (roger, osmond, g0123445, etc.)
   * Kubernetes does not have objects which represent normal user accounts. 
   * Normal users cannot be added to a cluster through an API call.
-  * Kubernetes should be integrated with existing Identity Provider provided for the Cloud Provider or the Adhoc IAM: See CoreOS DEX (Identity Service that uses OpenID Connect to drive authentication for other apps.)
+  * Kubernetes should be integrated with existing Identity Provider provided for the Cloud Provider or the Adhoc IAM: For example CoreOS DEX (Identity Service that uses OpenID Connect to drive authentication for other apps.) and CoreOS Tectonic (Multi Cloud Management System).
 - Service Account (aws-node, kube-dns, etc.)
   * They are users managed by the Kubernetes API. They are bound to specific namespaces, and created automatically by the API server or manually through API calls. Service accounts are tied to a set of credentials stored as `Secrets`, which are mounted into pods allowing in-cluster processes to talk to the Kubernetes API.
 
@@ -815,7 +815,9 @@ $ istioctl delete -f samples/bookinfo/routing/bookinfo-gateway.yaml -n bookinfo
 
 __References:__
 
-- https://github.com/coreos/dex#kubernetes--dex
+- https://stackoverflow.com/questions/42170380/how-to-add-users-to-kubernetes-kubectl 
+- https://github.com/coreos/dex
+- https://coreos.com/tectonic/docs/latest/users/tectonic-identity-overview.html
 - https://kubernetes.io/blog/2017/04/rbac-support-in-kubernetes/
 - https://kubernetes.io/docs/reference/access-authn-authz/authentication/
 - https://kubernetes.io/docs/reference/access-authn-authz/authorization/
