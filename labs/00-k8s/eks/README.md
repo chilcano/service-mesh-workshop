@@ -585,12 +585,26 @@ Now, if we want to enable `MTLS` (Mutual TLS Authentication) between services an
 $ helm install install/kubernetes/helm/istio --name istio --namespace istio-system --set global.mtls.enabled=true global.controlPlaneSecurityEnabled=true
 ```
 
+List deployed Helm Charts.
+```sh
+$ helm list
+NAME 	REVISION	UPDATED                 	STATUS  	CHART      	NAMESPACE   
+istio	1       	Sat Jul 28 03:20:21 2018	DEPLOYED	istio-0.8.0	istio-system
+```
+
+Delete deployed Helm Chart.
+```sh
+$ helm delete sample
+```
+
 For more `Helm` default parameters here: https://istio.io/docs/setup/kubernetes/helm-install
 
 
 ### 4.5. Deploy Istio BookInfo App Demo
 
-Istio brings a sample application (multiple APIs and Microservices) called `BookInfo` to show us all capabilities of Istio. To understand what `BookInfo` does, please check out this: https://istio.io/docs/guides/bookinfo
+- https://istio.io/docs/guides/bookinfo
+- https://github.com/arun-gupta/istio-kubernetes-aws
+- https://medium.com/@mahesh.rayas/istio-deploy-sample-bookinfo-to-aws-eks-543b59474783 
 
 The Bookinfo application is broken into four separate microservices:
 
@@ -614,6 +628,9 @@ _Bookinfo Application without Istio._
 ![Bookinfo Application with Istio (Envoy Proxy as Sidecar).](./bookinfo-arch-with-istio.svg)
 
 _Bookinfo Application with Istio (Envoy Proxy as Sidecar)._
+
+
+#### 4.5.1. Installing BookInfo with automatic sidecar injection.
 
 Install `BookInfo` demo in the namespace `bookinfo`. We should create the namespace `bookinfo` for our App and label it with `istio-injection=enabled` before deploying the `BookInfo` App. Behind of scenes Istio will inject automatically Envoy Proxy as Sidecar Container in each Pod.
 
@@ -658,7 +675,7 @@ $ kubectl apply -f samples/bookinfo/kube/bookinfo.yaml -n bookinfo
 >   * https://github.com/istio/old_issues_repo/issues/271 
 > - Any App should be deployed without Istio automatic sidecar injection, it should be deployed by injection sidecar manually with `istioctl kube-inject` command.
 
-__Manual sidecar injection:__
+#### 4.5.2. Manual BookInfo with automatic sidecar injection.
 
 Remove the Label that the namespace `bookinfo` has `istio-injection=enabled`.
 ```sh
@@ -682,7 +699,7 @@ $ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml
 
 Check the resources created.
 ```sh
-$ kubectl get all -n bookinfo
+$ kubectl get pod,svc -n bookinfo
 
 NAME                                  READY     STATUS    RESTARTS   AGE
 pod/details-v1-7f4b9b7775-4h4hw       2/2       Running   0          45s
@@ -697,22 +714,6 @@ service/details       ClusterIP   10.100.109.248   <none>        9080/TCP   46s
 service/productpage   ClusterIP   10.100.76.79     <none>        9080/TCP   40s
 service/ratings       ClusterIP   10.100.249.240   <none>        9080/TCP   45s
 service/reviews       ClusterIP   10.100.24.187    <none>        9080/TCP   43s
-
-NAME                             DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/details-v1       1         1         1            1           46s
-deployment.apps/productpage-v1   1         1         1            1           40s
-deployment.apps/ratings-v1       1         1         1            1           45s
-deployment.apps/reviews-v1       1         1         1            1           44s
-deployment.apps/reviews-v2       1         1         1            1           43s
-deployment.apps/reviews-v3       1         1         1            1           42s
-
-NAME                                        DESIRED   CURRENT   READY     AGE
-replicaset.apps/details-v1-7f4b9b7775       1         1         1         46s
-replicaset.apps/productpage-v1-586c4486b7   1         1         1         40s
-replicaset.apps/ratings-v1-7bc49f5779       1         1         1         45s
-replicaset.apps/reviews-v1-b44bd5769        1         1         1         44s
-replicaset.apps/reviews-v2-6d87c8c5         1         1         1         43s
-replicaset.apps/reviews-v3-79fb5c99d5       1         1         1         42s
 ```
 
 Since that all K8s services (aka `vip`) are of type `ClusterIP`, that means that the BookInfo App isn't accesible from Internet, and the uniqe way to get access to the application is through of Istio Ingres Gateway Pod (`istio-ingressgateway-7d89dbf85f-kw4bb`) and its Service (`istio-ingressgateway`) wich is of type `LoadBalancer`.
@@ -823,25 +824,69 @@ __References:__
 - https://kubernetes.io/docs/reference/access-authn-authz/authorization/
 - https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 - https://kubernetes.io/docs/reference/access-authn-authz/abac/
+- AWS EKS Workshop - AuthN & AuthZ: https://github.com/aws-samples/aws-workshop-for-kubernetes/tree/master/04-path-security-and-networking/402-authentication-and-authorization
 
 ## 6. Service Identity
 
+
+
+here!!!!!!!!!
+
+
 ### 6.1. SPIFFE
 
-### 6.2. PKI, TLS/MTLS everywhere
+### 6.2. PKI, TLS/MTLS anywhere
 
 ### 6.3. Secrets Management 
 
-## 7. CI/CD, DevOps, SecDevOps
+__References:__
 
-### 7.1. Considerations
+- AWS EKS Workshop - App Config & Secrets : https://github.com/aws-samples/aws-workshop-for-kubernetes/tree/master/04-path-security-and-networking/401-configmaps-and-secrets
+
+
+
+
+
+
+## 7. Network Segmentation and Isolation with Kubernetes Network Policy
+
+- Kubernetes Network Policy objects allow for fine-grained network policy enforcement, ensuring that traffic within your Kubernetes cluster can only flow in the direction that you specify. As an example, if we take a scenario where Kubernetes namespaces are used to enforce boundaries between products, or even enforce boundaries between different environments (e.g. development vs production), network policies can be configured to ensure no unauthorized network traffic is allowed beyond its boundary. Think of it as being similar to applying Iptables filters in the AWS world.
+- Network policies are implemented by an add-on; there are several available. Any of these solutions allow you to specify a network policy and then enforce the rules while your services are running.
+* Calico
+* Weave Net
+
+__References:__
+
+- AWS EKS Workshop:
+  * Network Policy: https://github.com/aws-samples/aws-workshop-for-kubernetes/tree/master/04-path-security-and-networking/404-network-policies
+  * Set up a Kubernetes cluster with Calico: https://github.com/aws-samples/aws-workshop-for-kubernetes/tree/master/04-path-security-and-networking/404-network-policies/calico
+  * Set up a Kubernetes cluster with Weave Net: https://github.com/aws-samples/aws-workshop-for-kubernetes/tree/master/04-path-security-and-networking/404-network-policies/weavenet
+
+
+## 8. CI/CD, DevOps, SecDevOps
 
 - Container Deployment Patterns: Sidecar, Adapter, Ambassador, Init, etc.
 - Deployment Workflow Engine: Jenkins X and Scaffold
-- SecDevOps: Continuous Security and Secrity Monitoring
+- SecDevOps: Continuous Security and Security Monitoring
 
-### 7.2. CI/CD Demo
+__References:__
 
-## 8. Observability and Security Monitoring in real-time
+- xxxx
+- yyyy
 
-## 9. Conclusions
+## 9. Observability and Security Monitoring in real-time
+
+aaaaa
+
+- Quantify risk for Kubernetes resources: https://kubesec.io
+- KubeSec: `kubectl` plugin for scanning Kubernetes pods, deployments, daemonsets and statefulsets - https://github.com/stefanprodan/kubectl-kubesec
+
+__References:__
+
+- xxxx
+- yyyy
+
+## 10. Conclusions
+
+- xxxx
+- yyyy
