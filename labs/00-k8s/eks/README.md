@@ -599,8 +599,8 @@ An Istio service mesh is logically split into a **data plane** and a **control p
 
 The following diagram shows the different components that make up each plane:
 
-![The overall architecture of an Istio-based application.](./istio-arch-components.svg)
-
+> ![The overall architecture of an Istio-based application.](./istio-arch-components.svg)
+> _High level Istio Architecture and Components._
 
 ### 4.4. Deploy Istio BookInfo Application
 
@@ -619,14 +619,11 @@ There are 3 versions of the `reviews` microservice:
 
 The end-to-end architecture of the application is shown below.
 
-![Bookinfo Application without Istio.](./bookinfo-arch-no-istio.svg)
+> ![Bookinfo Application without Istio.](./bookinfo-arch-no-istio.svg)
+> _Bookinfo Application without Istio._
 
-_Bookinfo Application without Istio._
-
-![Bookinfo Application with Istio (Envoy Proxy as Sidecar).](./bookinfo-arch-with-istio.svg)
-
-_Bookinfo Application with Istio (Envoy Proxy as Sidecar)._
-
+> ![Bookinfo Application with Istio (Envoy Proxy as Sidecar).](./bookinfo-arch-with-istio.svg)
+> _Bookinfo Application with Istio (Envoy Proxy as Sidecar)._
 
 __References:__
 - https://istio.io/docs/guides/bookinfo
@@ -857,9 +854,7 @@ __References:__
 
 ## 6. Service Identity
 
-
 here!!!!!!!!!
-
 
 ### 6.1. SPIFFE
 
@@ -870,11 +865,6 @@ here!!!!!!!!!
 __References:__
 
 - AWS EKS Workshop - App Config & Secrets : https://github.com/aws-samples/aws-workshop-for-kubernetes/tree/master/04-path-security-and-networking/401-configmaps-and-secrets
-
-
-
-
-
 
 ## 7. Network Segmentation and Isolation with Kubernetes Network Policy
 
@@ -898,21 +888,17 @@ __References:__
 - SecDevOps: Continuous Security and Security Monitoring
 
 __References:__
-
-- xxxx
-- yyyy
+- https://github.com/arun-gupta/java-k8s
+- https://github.com/aws-samples/aws-workshop-for-kubernetes/tree/master/03-path-application-development/308-cicd-workflows
 
 ## 9. Observability and Security Monitoring in real-time
 
-aaaaa
-
-- Quantify risk for Kubernetes resources: https://kubesec.io
-- KubeSec: `kubectl` plugin for scanning Kubernetes pods, deployments, daemonsets and statefulsets - https://github.com/stefanprodan/kubectl-kubesec
+here!!!!!!!!!
 
 __References:__
 
-- xxxx
-- yyyy
+- Quantify risk for Kubernetes resources: https://kubesec.io
+- KubeSec: `kubectl` plugin for scanning Kubernetes pods, deployments, daemonsets and statefulsets - https://github.com/stefanprodan/kubectl-kubesec
 
 ## 10. Conclusions
 
