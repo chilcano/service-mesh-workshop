@@ -7,6 +7,7 @@ The AWS EKS provides version 1.10 of Kubernetes and needs `kubectl` version `1.1
 More info:
 - https://kubernetes.io/docs/tasks/tools/install-kubectl
 - https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
+- https://www.terraform.io/docs/providers/aws/guides/eks-getting-started.html (EKS and Terraform)
 
 ### 1.1. For Mac OSX
 
@@ -819,7 +820,7 @@ __Important:__
 
 If you are not going to use the EKS anymore, we recommend remove the Istio route for `BookInfo` App:
 ```sh
-$ istioctl delete -f samples/bookinfo/routing/bookinfo-gateway.yaml -n bookinfo
+$ istioctl delete -f samples/bookinfo/networking/bookinfo-gateway.yaml -n bookinfo
 ```
 
 ## 5. IAM, AuthN, AuthZ and RBAC
