@@ -814,10 +814,8 @@ istio-ingressgateway       LoadBalancer   10.100.13.97     pqr.us-west-2.elb.ama
 
 Then, finally we should open this URL `http://pqr.us-west-2.elb.amazonaws.com:80/productpage` in our browser.
 
-
-![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.png)
-
-_Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
+> ![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.png)
+> _Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
 
 
 __Important:__
