@@ -601,6 +601,7 @@ An Istio service mesh is logically split into a **data plane** and a **control p
 The following diagram shows the different components that make up each plane:
 
 > ![The overall architecture of an Istio-based application.](./istio-arch-components.svg)
+> 
 > _High level Istio Architecture and Components._
 
 ### 4.4. Deploy Istio BookInfo Application
@@ -621,9 +622,11 @@ There are 3 versions of the `reviews` microservice:
 The end-to-end architecture of the application is shown below.
 
 > ![Bookinfo Application without Istio.](./bookinfo-arch-no-istio.svg)
+> 
 > _Bookinfo Application without Istio._
 
 > ![Bookinfo Application with Istio (Envoy Proxy as Sidecar).](./bookinfo-arch-with-istio.svg)
+> 
 > _Bookinfo Application with Istio (Envoy Proxy as Sidecar)._
 
 __References:__
@@ -673,10 +676,10 @@ $ kubectl apply -f samples/bookinfo/kube/bookinfo.yaml -n bookinfo
 > __Observation:__
 > Unfortunately, Istio's automatic sidecar injection not working with EKS. 
 > If you are using Istio 0.8, you can use the patched `istioctl` ( see  https://github.com/istio/istio/issues/5327#issuecomment-397845262 ) 
-> - References:
->   * https://forums.aws.amazon.com/thread.jspa?threadID=285696
->   * https://github.com/istio/old_issues_repo/issues/271
->   * https://istio.io/about/notes/1.0/
+> References:
+>  * https://forums.aws.amazon.com/thread.jspa?threadID=285696
+>  * https://github.com/istio/old_issues_repo/issues/271
+>  * https://istio.io/about/notes/1.0/
 
 
 #### 4.5.2. Installing BookInfo Application with manual sidecar injection.
@@ -813,6 +816,7 @@ istio-ingressgateway       LoadBalancer   10.100.13.97     pqr.us-west-2.elb.ama
 Then, finally we should open this URL `http://pqr.us-west-2.elb.amazonaws.com:80/productpage` in our browser.
 
 > ![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.png)
+> 
 > _Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
 
 
