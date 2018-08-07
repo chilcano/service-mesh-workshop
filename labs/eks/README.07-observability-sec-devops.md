@@ -1,6 +1,6 @@
 # Observability and Security Monitoring in real-time
 
-here!!!!!!!!!
+TBC
 
 __References:__
 
@@ -10,4 +10,6 @@ __References:__
   * https://www.cisecurity.org/benchmark/kubernetes
   * https://github.com/aquasecurity/kube-bench
   * https://blog.aquasec.com/first-steps-creating-and-securing-an-eks-cluster
+- Kiali
+  * https://www.kiali.io/gettingstarted
 

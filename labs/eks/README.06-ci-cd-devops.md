@@ -1,4 +1,6 @@
-# CI/CD, DevOps, SecDevOps
+# CI/CD, DevOps
+
+TBC
 
 ## 1. Container Deployment Patterns
 

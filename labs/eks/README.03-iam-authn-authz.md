@@ -1,12 +1,15 @@
 # IAM, AuthN, AuthZ and RBAC on Amazon EKS
 
+TBC
+
 ## 1. IAM in Kubernetes (AuthN)
 
 - All Kubernetes clusters have two categories of users: service accounts managed by Kubernetes, and normal users.
 - Normal Users (roger, osmond, g0123445, etc.)
   * Kubernetes does not have objects which represent normal user accounts. 
   * Normal users cannot be added to a cluster through an API call.
-  * Kubernetes should be integrated with existing Identity Provider provided for the Cloud Provider or the Adhoc IAM: For example CoreOS DEX (Identity Service that uses OpenID Connect to drive authentication for other apps.) and CoreOS Tectonic (Multi Cloud Management System).
+- Kubernetes should be integrated with existing Identity Provider provided for the Cloud Provider or with your Adhoc IAM.
+  * For example CoreOS DEX (Identity Service that uses OpenID Connect to drive authentication for other apps.) and CoreOS Tectonic (Multi Cloud Management System).
 - Service Account (aws-node, kube-dns, etc.)
   * They are users managed by the Kubernetes API. They are bound to specific namespaces, and created automatically by the API server or manually through API calls. Service accounts are tied to a set of credentials stored as `Secrets`, which are mounted into pods allowing in-cluster processes to talk to the Kubernetes API.
 

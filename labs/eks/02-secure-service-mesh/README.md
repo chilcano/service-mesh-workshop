@@ -1,8 +1,26 @@
 # Implementing a Secure Service Mesh with Istio 1.0 on Amazon EKS
 
-## 1. Implementing a Secure Data Plane and Control Plane with Istio 1.0
+## 1. Data Plane and Control Plane in a Service Mesh
 
-We are going to implement a Secure Data Plane by using Envoy Proxy (https://www.envoyproxy.io) sitting in front of each App Container and being deployed as a Sidecar Container. We can do this process if we have few App Containers, but if we have several App Containers continuously retiring and redeploying them we should use a framework like Istio (https://istio.io).
+A Service Mesh is logically split into a **Data Plane** and a **Control Plane**.
+
+* The **Data Plane** is composed of a set of intelligent proxies
+  ([Envoy Proxy](https://www.envoyproxy.io)) deployed as sidecars. These proxies
+  mediate and control all network communication between microservices along
+  with [Mixer](https://istio.io/docs/concepts/policies-and-telemetry/), a general-purpose
+  policy and telemetry hub.
+
+* The **Control Plane** manages and configures the proxies to route traffic.
+  Additionally, the control plane configures Mixers to enforce policies and
+  collect telemetry.
+
+The following diagram shows the different components that make up each plane:
+
+> ![High level Istio Architecture and Components.](./istio-arch-components.svg)
+> 
+> _High level Istio Architecture and Components._
+
+Deploying Sidecars for each App Container and managing them is easy for a few App Containers, but if we have several App Containers continuously retiring and redeploying them we should use a framework like Istio (https://istio.io).
 
 Istio provides extra capabilities to manage all ecosystem, the API/Microservices based on Containers primitives and the security of course.
 In other words, Istio provides:
@@ -29,7 +47,7 @@ More information about Sidecar Pattern:
 - Introduction to Service Management with Istio Service Mesh (Cloud Next '18) (https://www.youtube.com/watch?v=wCJrdKdD6UM): we can see the relationship between Service Management (Istio) and API Management (Apigee)
 - See GIS SecEng Document Repository.
 
-### 4.1. Installing Istio using Helm and Tiller
+## 2. Install Istio using Helm and Tiller
 
 We are going to use `Helm` (The package manager for Kubernetes - https://helm.sh), a supported CNCF (https://www.cncf.io/blog/2018/06/01/cncf-to-host-helm) tool to deliver/install quickly (in seconds) extra components or simply our App Containers on the Kubernetes Cluster.
 
@@ -123,7 +141,7 @@ prometheus                 ClusterIP      10.100.147.138   <none>               
 
 In this point we are able to deploy any App Containers on EKS Cluster, specifically on our Secure Data Plane based on Envoy Proxy deployed as Sidecar.
 
-### 4.2. Customized installation of Istio using Helm
+__Customized installation of Istio using Helm.__
 
 The Helm chart also offers significant customization options per individual service. Customize these per-service options. The per-service options are exposed via the `values.yaml` file.
 For example, if we want to enable `MTLS` (Mutual TLS Authentication) between services and `MTLS` in Istio Control Plane, we should install Istio as follow:
@@ -154,30 +172,13 @@ $ kubectl -n istio-system delete job --all
 
 For more `Helm` default parameters here: https://istio.io/docs/setup/kubernetes/helm-install
 
+## 2. Create a Secure Data Plane (Inject Sidecars to App Containers)
 
-### 4.3. Exploring installed Istio components
+To get a Secure Data Plane for any Container-based Application, we should inject a sidecar proxy for each container. What we are doing here is connecting each App Containers through its respective sidecar. Then, we are going to take a specific Distributed Container-based Application and will inject **automatically** or **manually** the sidecars.
 
-An Istio service mesh is logically split into a **data plane** and a **control plane**.
+### 2.1. Istio's BookInfo Application
 
-* The **data plane** is composed of a set of intelligent proxies
-  ([Envoy](https://www.envoyproxy.io/)) deployed as sidecars. These proxies
-  mediate and control all network communication between microservices along
-  with [Mixer](https://istio.io/docs/concepts/policies-and-telemetry/), a general-purpose
-  policy and telemetry hub.
-
-* The **control plane** manages and configures the proxies to route traffic.
-  Additionally, the control plane configures Mixers to enforce policies and
-  collect telemetry.
-
-The following diagram shows the different components that make up each plane:
-
-> ![The overall architecture of an Istio-based application.](./istio-arch-components.svg)
-> 
-> _High level Istio Architecture and Components._
-
-### 4.4. Deploy Istio BookInfo Application
-
-The Bookinfo application is broken into four separate microservices:
+The [BookInfo Applcation](https://istio.io/docs/guides/bookinfo) that Istio provides us is the best way to learn and understand how to a Secure Service Mesh works. The Bookinfo application is broken into four separate microservices:
 
 * `productpage`. The `productpage` microservice calls the `details` and `reviews` microservices to populate the page.
 * `details`. The `details` microservice contains book information.
@@ -201,14 +202,21 @@ The end-to-end architecture of the application is shown below.
 > _Bookinfo Application with Istio (Envoy Proxy as Sidecar)._
 
 __References:__
-- https://istio.io/docs/guides/bookinfo
+
 - https://github.com/arun-gupta/istio-kubernetes-aws
 - https://medium.com/@mahesh.rayas/istio-deploy-sample-bookinfo-to-aws-eks-543b59474783 
 
 
-#### 4.5.1. Installing BookInfo with automatic sidecar injection.
+#### 2.1.1. Installing BookInfo with automatic sidecar injection.
 
-Install `BookInfo` demo in the namespace `bookinfo`. We should create the namespace `bookinfo` for our App and label it with `istio-injection=enabled` before deploying the `BookInfo` App. Behind of scenes Istio will inject automatically Envoy Proxy as Sidecar Container in each Pod.
+> Unfortunately, Istio's automatic sidecar injection not working with EKS. 
+> If you are using Istio 0.8, you can use the patched `istioctl` ( see  https://github.com/istio/istio/issues/5327#issuecomment-397845262 ) 
+> References:
+>  * https://forums.aws.amazon.com/thread.jspa?threadID=285696
+>  * https://github.com/istio/old_issues_repo/issues/271
+>  * https://istio.io/about/notes/1.0/
+
+If Istio was deployed with Automatic Sidecar Injector, then you should follow the next steps:
 
 Create the namespace `bookinfo`.
 ```sh
@@ -244,18 +252,10 @@ Once done, deploy the `BookInfo` App.
 $ kubectl apply -f samples/bookinfo/kube/bookinfo.yaml -n bookinfo
 ```
 
-> __Observation:__
-> Unfortunately, Istio's automatic sidecar injection not working with EKS. 
-> If you are using Istio 0.8, you can use the patched `istioctl` ( see  https://github.com/istio/istio/issues/5327#issuecomment-397845262 ) 
-> References:
->  * https://forums.aws.amazon.com/thread.jspa?threadID=285696
->  * https://github.com/istio/old_issues_repo/issues/271
->  * https://istio.io/about/notes/1.0/
+#### 2.1.2. Installing BookInfo Application with manual sidecar injection.
 
+We have to get the existing sidecar injection and mesh configuration available (`istio` and `istio-sidecar-injector` ConfigMaps) after of successful *standard* Istio installation.
 
-#### 4.5.2. Installing BookInfo Application with manual sidecar injection.
-
-We have to get the existing sidecar injection and mesh configuration available (`istio` and `istio-sidecar-injector` ConfigMaps) after of successful Istio installation.
 ```sh
 $ kubectl -n istio-system get configmap istio-sidecar-injector -o=jsonpath='{.data.config}' > inject-config.yaml
 $ kubectl -n istio-system get configmap istio -o=jsonpath='{.data.mesh}' > mesh-config.yaml
@@ -319,14 +319,15 @@ service/ratings       ClusterIP   10.100.249.240   <none>        9080/TCP   45s
 service/reviews       ClusterIP   10.100.24.187    <none>        9080/TCP   43s
 ```
 
+__Calling the BookInfo Application over HTTP__
+
 Since that all K8s services (aka `vip`) are of type `ClusterIP`, that means that the BookInfo App isn't accesible from Internet, and the uniqe way to get access to the application is through of Istio Ingres Gateway Pod (`istio-ingressgateway-7d89dbf85f-kw4bb`) and its Service (`istio-ingressgateway`) wich is of type `LoadBalancer`.
 
 In conclusion, if we want to call an API or Microservice running in a Secure Data Plane (Secure Service Mesh) based on Istio and Envoy Proxy, we should identify the `fqdn` of the Istio Ingres Gateway Service (`istio-ingressgateway`) and perform the request through of it. But as we are using a Secure Data Plane (Secure Service Mesh), we need to create a new route (`kind: VirtualService`) to the required API or Microservice. Below the commands:
 
-The route (`kind: VirtualService`) for the BookInfo App.
-```sh
-$ cat samples/bookinfo/networking/bookinfo-gateway.yaml 
+The route (`kind: VirtualService`) for the BookInfo App is `samples/bookinfo/networking/bookinfo-gateway.yaml`:
 
+```yaml
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
@@ -384,12 +385,24 @@ NAME                       TYPE           CLUSTER-IP       EXTERNAL-IP          
 istio-ingressgateway       LoadBalancer   10.100.13.97     pqr.us-west-2.elb.amazonaws.com   80:31380/TCP,443:31390/TCP,31400:31400/TCP     8h
 ```
 
-Then, finally we should open this URL `http://pqr.us-west-2.elb.amazonaws.com:80/productpage` in our browser.
+If the `EXTERNAL-IP` value is set, your environment has an external load balancer that you can use for the ingress gateway. If the `EXTERNAL-IP` value is `<none>` (or perpetually `<pending>`), your environment does not provide an external load balancer for the ingress gateway. In this case, you can access the gateway using the service’s [NodePort](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport).
+
+In this case we have an external load balancer (Amazon ELB).
+```sh
+$ export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+$ export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+$ export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].port}')
+```
+Then, finally we should open this URL `http://$INGRESS_HOST:$INGRESS_PORT/productpage`in our browser or `https://$INGRESS_HOST:$INGRESS_PORT/productpage` for `HTTPS`.
 
 > ![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.png)
 > 
 > _Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
 
+
+__Calling the BookInfo Application over HTTPS (simple TLS)__
+
+Follow this: https://istio.io/docs/tasks/traffic-management/secure-ingress
 
 __Important:__
 
@@ -410,6 +423,6 @@ GATEWAY NAME       HOSTS     NAMESPACE   AGE
 bookinfo-gateway   *         bookinfo    1m
 ```
 
-## 5. Exploring Istio
+## 3. Reviviewing the BookInfo Applicatiom
 
-xxxxxx
+TBC
