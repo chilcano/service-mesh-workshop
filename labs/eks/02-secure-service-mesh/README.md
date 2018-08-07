@@ -319,6 +319,10 @@ service/ratings       ClusterIP   10.100.249.240   <none>        9080/TCP   45s
 service/reviews       ClusterIP   10.100.24.187    <none>        9080/TCP   43s
 ```
 
+> ![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.png)
+> 
+> _Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
+
 __Calling the BookInfo Application over HTTP__
 
 Since that all K8s services (aka `vip`) are of type `ClusterIP`, that means that the BookInfo App isn't accesible from Internet, and the uniqe way to get access to the application is through of Istio Ingres Gateway Pod (`istio-ingressgateway-7d89dbf85f-kw4bb`) and its Service (`istio-ingressgateway`) wich is of type `LoadBalancer`.
@@ -395,9 +399,9 @@ $ export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingress
 ```
 Then, finally we should open this URL `http://$INGRESS_HOST:$INGRESS_PORT/productpage`in our browser or `https://$INGRESS_HOST:$INGRESS_PORT/productpage` for `HTTPS`.
 
-> ![Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope.](./weave-scope-browsing-bookinfo-and-istio.png)
+> ![Accessing to BookInfo's ProductPage.](./istio-bookinfo-http.png)
 > 
-> _Browsing the Secure Service Mesh (BookInfo and Istio) from Weave Scope._
+> _Accessing to BookInfo's ProductPage._
 
 
 __Calling the BookInfo Application over HTTPS (simple TLS)__
