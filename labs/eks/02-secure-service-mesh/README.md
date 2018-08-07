@@ -427,6 +427,6 @@ GATEWAY NAME       HOSTS     NAMESPACE   AGE
 bookinfo-gateway   *         bookinfo    1m
 ```
 
-## 3. Reviviewing the BookInfo Applicatiom
+## 3. Reviviewing the BookInfo Application
 
 TBC
