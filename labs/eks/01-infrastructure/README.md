@@ -88,7 +88,59 @@ $ aws --version
 aws-cli/1.15.64 Python/2.7.12 Linux/4.15.0-29-generic botocore/1.10.63
 ```
 
-## 2. Create an AWS EKS Cluster
+### 1.3. For windows 10 Pro
+
+Open a `PowerShell` as `Administrator` and install `Chocolatey` (https://chocolatey.org/install).
+```powershell
+PS C:\> Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+```
+
+Install `kubectl`.
+```powershell
+PS C:\> choco upgrade chocolatey
+
+PS C:\> choco install kubernetes-cli
+
+PS C:\> kubectl version --short --client
+Client Version: v1.11.2
+```
+
+Install `heptio-authenticator-aws` (It was renamed to `aws-iam-authenticator`).
+```powershell
+PS C:\> mkdir $HOME/bin
+PS C:\> cd $HOME/bin
+PS C:\> curl -o aws-iam-authenticator.exe https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-07-26/bin/windows/amd64/aws-iam-authenticator.exe
+PS C:\> Setx PATH '$PATH;$HOME\bin\'
+
+// Or
+PS C:\> [Environment]::SetEnvironmentVariable("PATH", "${PATH};${HOME}\bin\")
+
+// Re-open The PowerShell
+
+PS C:\> aws-iam-authenticator -h
+```
+
+Install `eksctl`.
+```powershell
+PS C:\> cd $HOME/bin
+PS C:\> [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+PS C:\> Invoke-WebRequest -UseBasicParsing -Uri https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Windows_amd64.zip 
+PS C:\> Expand-Archive -Path eksctl_Windows_amd64.zip 
+PS C:\> mv .\eksctl_Windows_amd64\eksctl.exe eksctl.exe
+
+PS C:\> eksctl version
+2018-09-03T19:15:57+02:00 [ℹ]  versionInfo = map[string]string{"builtAt":"2018-08-31T14:39:24Z", "gitCommit":"0578d6cd44d8c5a4ebe17825db882ad194f0bee4", "gitTag":"0.1.1"}
+```
+
+Install `awscli`.
+```powershell
+PS C:\> Invoke-WebRequest -UseBasicParsing -Uri https://s3.amazonaws.com/aws-cli/AWSCLI64.msi
+PS C:\> .\AWSCLI64.msi
+PS C:\> aws --version
+aws-cli/1.16.6 Python/2.7.9 Windows/8 botocore/1.11.6
+```
+
+## 2. Create AWS EKS Clusters for Linux and Mac OSX
 
 ### 2.1. Previous AWS preparation 
 
@@ -391,7 +443,107 @@ kube-system   replicaset.apps/kube-dns-64b69465b4   1         1         1       
 Further `eksctl` commands:
 - https://eksctl.io
 
-## 3. Exploring the Cluster
+
+## 3. Create AWS EKS Clusters for Windows 10 Pro
+
+### 3.1. Previous AWS preparation 
+
+#### 3.1.1. AWS credentials
+
+Create `$HOME\.aws\credentials` file and fill out properly.
+
+```powershell
+PS C:\> nano $HOME\.aws\credentials
+
+[default]
+aws_access_key_id = YOUR-AWS-ACCESS-KEY-ID-DEFAULT
+aws_secret_access_key = your-aws-secret-access-key-default
+
+[eks-usr-roger]
+aws_access_key_id = YOUR-AWS-ACCESS-KEY-ID
+aws_secret_access_key = your-aws-secret-access-key
+```
+
+Create $HOME\.aws\config` file and fill out properly.
+```powershell
+PS C:\> nano $HOME\.aws\config
+
+[default]
+region = eu-west-2
+output = json
+
+[profile eks-usr-roger]
+region = us-east-1
+output = json
+```
+
+#### 3.1.2. Generate SSH keys
+
+The ssh key is required only if you want to create a cluster, for other operations it is not required.
+```powershell
+PS C:\> ssh-keygen
+```
+
+Copy the content of `/Users/Chilcano/.ssh/id_rsa.pub` into `AWS > IAM > Users > Security credentials > Upload SSH public key`.
+
+### 3.2. Create and working with multiple Clusters
+
+Creating `kube01` and `kube02` clusters.
+```powershell
+PS C:\> eksctl create cluster -p eks-usr-roger -n kube01 --nodes 3
+PS C:\> eksctl create cluster -p eks-usr-roger -n kube02 --nodes 3
+```
+
+Getting the `kubeconfig` files.
+```powershell
+PS C:\> mkdir $HOME/eks
+PS C:\> eksctl utils write-kubeconfig -p eks-usr-roger -n kube01 --kubeconfig $HOME\eks\kube01.config
+PS C:\> eksctl utils write-kubeconfig -p eks-usr-roger -n kube02 --kubeconfig $HOME\eks\kube02.config
+```
+
+Load all `kubeconfig` files permanently (`User` context).
+```powershell
+PS C:\> [Environment]::SetEnvironmentVariable("KUBECONFIG", $null)
+PS C:\> [Environment]::SetEnvironmentVariable("KUBECONFIG", "${HOME}\eks\kube01.config;${HOME}\eks\kube02.config")
+PS C:\> [environment]::GetEnvironmentVariable("KUBECONFIG")
+```
+
+Checking loaded `kubeconfig` files.
+```powershell
+PS C:\> kubectl config view
+```
+
+To use the `use-context` param to switch between different clusters. Switching to 1st cluster.
+```powershell
+PS C:\> kubectl config use-context usr-123@kube01.us-west-2.eksctl.io
+Switched to context "usr-123@kube01.us-west-2.eksctl.io".
+
+PS C:\> kubectl get nodes
+```
+
+Switching to 2nd cluster.
+```powershell
+PS C:\> kubectl config use-context usr-123@kube02.us-west-2.eksctl.io
+Switched to context "usr-123@kube-rog-5.us-west-2.eksctl.io".
+
+PS C:\> kubectl get nodes
+```
+
+Checking the status.
+```powershell
+PS C:\> kubectl get componentstatus
+NAME                 STATUS    MESSAGE              ERROR
+controller-manager   Healthy   ok                   
+scheduler            Healthy   ok                   
+etcd-0               Healthy   {"health": "true"} 
+```
+
+Getting further information.
+```powershell
+PS C:\> kubectl get all --all-namespaces
+```
+
+## 4. Exploring the Cluster
 
 We are going to deploy Weave Scope, a web application to browse the cluster, in the cluster and exposing it by using `ClusterIP`.
 ```sh

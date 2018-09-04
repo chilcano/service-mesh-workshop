@@ -88,7 +88,59 @@ $ aws --version
 aws-cli/1.15.64 Python/2.7.12 Linux/4.15.0-29-generic botocore/1.10.63
 ```
 
-## 2. Create an AWS EKS Cluster
+### 1.3. For windows 10 Pro
+
+Open a `PowerShell` as `Administrator` and install `Chocolatey` (https://chocolatey.org/install).
+```powershell
+PS C:\> Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+```
+
+Install `kubectl`.
+```powershell
+PS C:\> choco upgrade chocolatey
+
+PS C:\> choco install kubernetes-cli
+
+PS C:\> kubectl version --short --client
+Client Version: v1.11.2
+```
+
+Install `heptio-authenticator-aws` (It was renamed to `aws-iam-authenticator`).
+```powershell
+PS C:\> mkdir $HOME/bin
+PS C:\> cd $HOME/bin
+PS C:\> curl -o aws-iam-authenticator.exe https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-07-26/bin/windows/amd64/aws-iam-authenticator.exe
+PS C:\> Setx PATH '$PATH;$HOME\bin\'
+
+// Or
+PS C:\> [Environment]::SetEnvironmentVariable("PATH", "${PATH};${HOME}\bin\")
+
+// Re-open The PowerShell
+
+PS C:\> aws-iam-authenticator -h
+```
+
+Install `eksctl`.
+```powershell
+PS C:\> cd $HOME/bin
+PS C:\> [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+PS C:\> Invoke-WebRequest -UseBasicParsing -Uri https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Windows_amd64.zip 
+PS C:\> Expand-Archive -Path eksctl_Windows_amd64.zip 
+PS C:\> mv .\eksctl_Windows_amd64\eksctl.exe eksctl.exe
+
+PS C:\> eksctl version
+2018-09-03T19:15:57+02:00 [ℹ]  versionInfo = map[string]string{"builtAt":"2018-08-31T14:39:24Z", "gitCommit":"0578d6cd44d8c5a4ebe17825db882ad194f0bee4", "gitTag":"0.1.1"}
+```
+
+Install `awscli`.
+```powershell
+PS C:\> Invoke-WebRequest -UseBasicParsing -Uri https://s3.amazonaws.com/aws-cli/AWSCLI64.msi
+PS C:\> .\AWSCLI64.msi
+PS C:\> aws --version
+aws-cli/1.16.6 Python/2.7.9 Windows/8 botocore/1.11.6
+```
+
+## 2. Create AWS EKS Clusters for Linux and Mac OSX
 
 ### 2.1. Previous AWS preparation 
 
@@ -391,7 +443,106 @@ kube-system   replicaset.apps/kube-dns-64b69465b4   1         1         1       
 Further `eksctl` commands:
 - https://eksctl.io
 
-## 3. Exploring the Cluster
+## 3. Create AWS EKS Clusters for Windows 10 Pro
+
+### 3.1. Previous AWS preparation 
+
+#### 3.1.1. AWS credentials
+
+Create `$HOME\.aws\credentials` file and fill out properly.
+
+```powershell
+PS C:\> nano $HOME\.aws\credentials
+
+[default]
+aws_access_key_id = YOUR-AWS-ACCESS-KEY-ID-DEFAULT
+aws_secret_access_key = your-aws-secret-access-key-default
+
+[eks-usr-roger]
+aws_access_key_id = YOUR-AWS-ACCESS-KEY-ID
+aws_secret_access_key = your-aws-secret-access-key
+```
+
+Create $HOME\.aws\config` file and fill out properly.
+```powershell
+PS C:\> nano $HOME\.aws\config
+
+[default]
+region = eu-west-2
+output = json
+
+[profile eks-usr-roger]
+region = us-east-1
+output = json
+```
+
+#### 3.1.2. Generate SSH keys
+
+The ssh key is required only if you want to create a cluster, for other operations it is not required.
+```powershell
+PS C:\> ssh-keygen
+```
+
+Copy the content of `/Users/Chilcano/.ssh/id_rsa.pub` into `AWS > IAM > Users > Security credentials > Upload SSH public key`.
+
+### 3.2. Create and working with multiple Clusters
+
+Creating `kube01` and `kube02` clusters.
+```powershell
+PS C:\> eksctl create cluster -p eks-usr-roger -n kube01 --nodes 3
+PS C:\> eksctl create cluster -p eks-usr-roger -n kube02 --nodes 3
+```
+
+Getting the `kubeconfig` files.
+```powershell
+PS C:\> mkdir $HOME/eks
+PS C:\> eksctl utils write-kubeconfig -p eks-usr-roger -n kube01 --kubeconfig $HOME\eks\kube01.config
+PS C:\> eksctl utils write-kubeconfig -p eks-usr-roger -n kube02 --kubeconfig $HOME\eks\kube02.config
+```
+
+Load all `kubeconfig` files permanently (`User` context).
+```powershell
+PS C:\> [Environment]::SetEnvironmentVariable("KUBECONFIG", $null)
+PS C:\> [Environment]::SetEnvironmentVariable("KUBECONFIG", "${HOME}\eks\kube01.config;${HOME}\eks\kube02.config")
+PS C:\> [environment]::GetEnvironmentVariable("KUBECONFIG")
+```
+
+Checking loaded `kubeconfig` files.
+```powershell
+PS C:\> kubectl config view
+```
+
+To use the `use-context` param to switch between different clusters. Switching to 1st cluster.
+```powershell
+PS C:\> kubectl config use-context usr-123@kube01.us-west-2.eksctl.io
+Switched to context "usr-123@kube01.us-west-2.eksctl.io".
+
+PS C:\> kubectl get nodes
+```
+
+Switching to 2nd cluster.
+```powershell
+PS C:\> kubectl config use-context usr-123@kube02.us-west-2.eksctl.io
+Switched to context "usr-123@kube-rog-5.us-west-2.eksctl.io".
+
+PS C:\> kubectl get nodes
+```
+
+Checking the status.
+```powershell
+PS C:\> kubectl get componentstatus
+NAME                 STATUS    MESSAGE              ERROR
+controller-manager   Healthy   ok                   
+scheduler            Healthy   ok                   
+etcd-0               Healthy   {"health": "true"} 
+```
+
+Getting further information.
+```powershell
+PS C:\> kubectl get all --all-namespaces
+```
+
+## 4. Exploring the Cluster
 
 We are going to deploy Weave Scope, a web application to browse the cluster, in the cluster and exposing it by using `ClusterIP`.
 ```sh
@@ -423,7 +574,7 @@ Now open your this URL `http://localhost:4040` in your browser.
 > _Exploring the EKS Cluster with Weave Scope._
 
 
-## 4. Implementing a Secure Service Mesh (Secure Data Plane and Control Plane)
+## 5. Implementing a Secure Service Mesh (Secure Data Plane and Control Plane)
 
 We are going to implement a Secure Data Plane by using Envoy Proxy (https://www.envoyproxy.io) sitting in front of each App Container and being deployed as a Sidecar Container. We can do this process if we have few App Containers, but if we have several App Containers continuously retiring and redeploying them we should use a framework like Istio (https://istio.io).
 
@@ -452,7 +603,7 @@ More information about Sidecar Pattern:
 - Introduction to Service Management with Istio Service Mesh (Cloud Next '18) (https://www.youtube.com/watch?v=wCJrdKdD6UM): we can see the relationship between Service Management (Istio) and API Management (Apigee)
 - See GIS SecEng Document Repository.
 
-### 4.1. Installing Istio using Helm and Tiller
+### 5.1. Installing Istio using Helm and Tiller
 
 We are going to use `Helm` (The package manager for Kubernetes - https://helm.sh), a supported CNCF (https://www.cncf.io/blog/2018/06/01/cncf-to-host-helm) tool to deliver/install quickly (in seconds) extra components or simply our App Containers on the Kubernetes Cluster.
 
@@ -547,7 +698,7 @@ prometheus                 ClusterIP      10.100.147.138   <none>               
 
 In this point we are able to deploy any App Containers on EKS Cluster, specifically on our Secure Data Plane based on Envoy Proxy deployed as Sidecar.
 
-### 4.2. Customized installation of Istio using Helm
+### 5.2. Customized installation of Istio using Helm
 
 The Helm chart also offers significant customization options per individual service. Customize these per-service options. The per-service options are exposed via the `values.yaml` file.
 For example, if we want to enable `MTLS` (Mutual TLS Authentication) between services and `MTLS` in Istio Control Plane, we should install Istio as follow:
@@ -579,7 +730,7 @@ $ kubectl -n istio-system delete job --all
 For more `Helm` default parameters here: https://istio.io/docs/setup/kubernetes/helm-install
 
 
-### 4.3. Exploring installed Istio components
+### 5.3. Exploring installed Istio components
 
 An Istio service mesh is logically split into a **data plane** and a **control plane**.
 
@@ -599,7 +750,7 @@ The following diagram shows the different components that make up each plane:
 > 
 > _High level Istio Architecture and Components._
 
-### 4.4. Deploy Istio BookInfo Application
+### 5.4. Deploy Istio BookInfo Application
 
 The Bookinfo application is broken into four separate microservices:
 
@@ -630,7 +781,7 @@ __References:__
 - https://medium.com/@mahesh.rayas/istio-deploy-sample-bookinfo-to-aws-eks-543b59474783 
 
 
-#### 4.5.1. Installing BookInfo with automatic sidecar injection.
+#### 5.4.1. Installing BookInfo with automatic sidecar injection.
 
 Install `BookInfo` demo in the namespace `bookinfo`. We should create the namespace `bookinfo` for our App and label it with `istio-injection=enabled` before deploying the `BookInfo` App. Behind of scenes Istio will inject automatically Envoy Proxy as Sidecar Container in each Pod.
 
@@ -677,7 +828,7 @@ $ kubectl apply -f samples/bookinfo/kube/bookinfo.yaml -n bookinfo
 >  * https://istio.io/about/notes/1.0/
 
 
-#### 4.5.2. Installing BookInfo Application with manual sidecar injection.
+#### 5.4.2. Installing BookInfo Application with manual sidecar injection.
 
 We have to get the existing sidecar injection and mesh configuration available (`istio` and `istio-sidecar-injector` ConfigMaps) after of successful Istio installation.
 ```sh
