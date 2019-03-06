@@ -4,7 +4,7 @@
 
 ```sh
 $ git clone https://github.com/chilcano/service-mesh-workshop
-$ cd $(PWD)/service-mesh-workshop/labs
+$ cd $PWD/service-mesh-workshop/labs
 
 $ oc apply -f 01-delivering-on-k8s/hello-app.yaml          ## for openshift/minishift
 $ kubectl apply -f 01-delivering-on-k8s/hello-app.yaml     ## for kubernetes/minikube
